@@ -1,0 +1,58 @@
+/* Event Manager Admin Styles */
+
+.event-meta-box {
+    padding: 10px 0;
+}
+
+.event-meta-box p {
+    margin-bottom: 20px;
+}
+
+.event-meta-box label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.event-meta-box input[type="datetime-local"],
+.event-meta-box select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.event-meta-box input[type="datetime-local"]:focus,
+.event-meta-box select:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+#speakers-list label,
+#organizers-list label {
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 3px;
+}
+
+#speakers-list label:hover,
+#organizers-list label:hover {
+    background-color: #f0f0f0;
+}
+
+#speakers-list input[type="checkbox"],
+#organizers-list input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Improve readability in meta box */
+.event-meta-box strong {
+    color: #23282d;
+    font-size: 14px;
+}
+
+/* Add some spacing for checkboxes */
+#speakers-list,
+#organizers-list {
+    margin-top: 10px;
+}
