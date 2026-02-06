@@ -13,6 +13,26 @@
     margin-bottom: 5px;
 }
 
+/* Date fields layout */
+.event-dates-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.event-date-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.event-date-field input[type="text"] {
+    width: 100%;
+}
+
+/* Form inputs */
+.event-meta-box input[type="text"],
+.event-meta-box input[type="url"],
 .event-meta-box input[type="datetime-local"],
 .event-meta-box select {
     padding: 8px;
@@ -20,6 +40,8 @@
     border-radius: 4px;
 }
 
+.event-meta-box input[type="text"]:focus,
+.event-meta-box input[type="url"]:focus,
 .event-meta-box input[type="datetime-local"]:focus,
 .event-meta-box select:focus {
     border-color: #0073aa;
@@ -27,32 +49,49 @@
     box-shadow: 0 0 0 1px #0073aa;
 }
 
-#speakers-list label,
-#organizers-list label {
+.event-full-width {
+    width: 100%;
+}
+
+.event-select-width {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Scrollable lists for speakers and organizers */
+.event-scrollable-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background: #fff;
+}
+
+.event-scrollable-list label {
+    display: block;
+    margin-bottom: 5px;
     padding: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
     border-radius: 3px;
 }
 
-#speakers-list label:hover,
-#organizers-list label:hover {
+.event-scrollable-list label:hover {
     background-color: #f0f0f0;
 }
 
-#speakers-list input[type="checkbox"],
-#organizers-list input[type="checkbox"] {
+.event-scrollable-list input[type="checkbox"] {
     margin-right: 8px;
+}
+
+/* Legacy support for existing IDs */
+#speakers-list,
+#organizers-list {
+    margin-top: 10px;
 }
 
 /* Improve readability in meta box */
 .event-meta-box strong {
     color: #23282d;
     font-size: 14px;
-}
-
-/* Add some spacing for checkboxes */
-#speakers-list,
-#organizers-list {
-    margin-top: 10px;
 }
