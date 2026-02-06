@@ -183,47 +183,139 @@ class Event_Manager_Metabox {
             </p>
 
             <p>
-                <label><strong><?php _e('Speakers:', 'event-manager'); ?></strong></label>
-                <div id="speakers-list" class="event-scrollable-list">
-                    <?php
-                    $all_speakers = get_posts(array(
-                        'post_type' => 'speaker',
-                        'posts_per_page' => -1,
-                        'orderby' => 'title',
-                        'order' => 'ASC'
-                    ));
+                <label for="speaker-search"><strong><?php _e('Speakers:', 'event-manager'); ?></strong></label>
+                <div class="event-autocomplete-container">
+                    <input type="text" id="speaker-search" class="event-autocomplete-input" placeholder="<?php _e('Search speakers...', 'event-manager'); ?>" autocomplete="off">
+                    <div id="speaker-results" class="event-autocomplete-results" style="display: none;"></div>
+                    <div id="selected-speakers" class="event-chips-container">
+                        <?php
+                        $all_speakers = get_posts(array(
+                            'post_type' => 'speaker',
+                            'posts_per_page' => -1,
+                            'orderby' => 'title',
+                            'order' => 'ASC'
+                        ));
 
-                    foreach ($all_speakers as $speaker) {
-                        $checked = in_array($speaker->ID, $event_data['speaker_ids']) ? 'checked' : '';
-                        echo '<label>';
-                        echo '<input type="checkbox" name="event_speakers[]" value="' . esc_attr($speaker->ID) . '" ' . $checked . '> ';
-                        echo esc_html($speaker->post_title);
-                        echo '</label>';
-                    }
+                        foreach ($all_speakers as $speaker) {
+                            if (in_array($speaker->ID, $event_data['speaker_ids'])) {
+                                echo '<span class="event-chip" data-id="' . esc_attr($speaker->ID) . '">';
+                                echo esc_html($speaker->post_title);
+                                echo '<button type="button" class="event-chip-remove">&times;</button>';
+                                echo '<input type="hidden" name="event_speakers[]" value="' . esc_attr($speaker->ID) . '">';
+                                echo '</span>';
+                            }
+                        }
 
-                    if (empty($all_speakers)) {
-                        echo '<p><em>' . __('No speakers found. Add speakers first.', 'event-manager') . '</em></p>';
-                    }
-                    ?>
+                        if (empty($all_speakers)) {
+                            echo '<p class="event-empty-message"><em>' . __('No speakers found. Add speakers first.', 'event-manager') . '</em></p>';
+                        }
+                        ?>
+                    </div>
                 </div>
             </p>
 
             <p>
-                <label><strong><?php _e('Organizers:', 'event-manager'); ?></strong></label>
-                <div id="organizers-list" class="event-scrollable-list">
-                    <?php
-                    $users = get_users(array('orderby' => 'display_name'));
+                <label for="organizer-search"><strong><?php _e('Organizers:', 'event-manager'); ?></strong></label>
+                <div class="event-autocomplete-container">
+                    <input type="text" id="organizer-search" class="event-autocomplete-input" placeholder="<?php _e('Search organizers...', 'event-manager'); ?>" autocomplete="off">
+                    <div id="organizer-results" class="event-autocomplete-results" style="display: none;"></div>
+                    <div id="selected-organizers" class="event-chips-container">
+                        <?php
+                        $users = get_users(array('orderby' => 'display_name'));
 
-                    foreach ($users as $user) {
-                        $checked = in_array($user->ID, $event_data['organizer_ids']) ? 'checked' : '';
-                        echo '<label>';
-                        echo '<input type="checkbox" name="event_organizers[]" value="' . esc_attr($user->ID) . '" ' . $checked . '> ';
-                        echo esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')';
-                        echo '</label>';
-                    }
-                    ?>
+                        foreach ($users as $user) {
+                            if (in_array($user->ID, $event_data['organizer_ids'])) {
+                                echo '<span class="event-chip" data-id="' . esc_attr($user->ID) . '">';
+                                echo esc_html($user->display_name) . ' (' . esc_html($user->user_email) . ')';
+                                echo '<button type="button" class="event-chip-remove">&times;</button>';
+                                echo '<input type="hidden" name="event_organizers[]" value="' . esc_attr($user->ID) . '">';
+                                echo '</span>';
+                            }
+                        }
+                        ?>
+                    </div>
                 </div>
             </p>
+
+            <script>
+            (function() {
+                const speakerData = <?php echo json_encode(array_map(function($s) {
+                    return ['id' => $s->ID, 'title' => $s->post_title];
+                }, $all_speakers)); ?>;
+
+                const organizerData = <?php echo json_encode(array_map(function($u) {
+                    return ['id' => $u->ID, 'title' => $u->display_name . ' (' . $u->user_email . ')'];
+                }, $users)); ?>;
+
+                setupAutocomplete('speaker-search', 'speaker-results', 'selected-speakers', speakerData);
+                setupAutocomplete('organizer-search', 'organizer-results', 'selected-organizers', organizerData);
+
+                function setupAutocomplete(inputId, resultsId, containerId, data) {
+                    const input = document.getElementById(inputId);
+                    const results = document.getElementById(resultsId);
+                    const container = document.getElementById(containerId);
+
+                    input.addEventListener('input', function() {
+                        const query = this.value.toLowerCase().trim();
+
+                        if (query.length === 0) {
+                            results.style.display = 'none';
+                            return;
+                        }
+
+                        const selectedIds = Array.from(container.querySelectorAll('.event-chip')).map(chip => chip.dataset.id);
+                        const filtered = data.filter(item =>
+                            !selectedIds.includes(String(item.id)) &&
+                            item.title.toLowerCase().includes(query)
+                        );
+
+                        if (filtered.length === 0) {
+                            results.style.display = 'none';
+                            return;
+                        }
+
+                        results.innerHTML = filtered.map(item =>
+                            `<div class="event-autocomplete-item" data-id="${item.id}" data-title="${item.title}">${item.title}</div>`
+                        ).join('');
+                        results.style.display = 'block';
+                    });
+
+                    results.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('event-autocomplete-item')) {
+                            const id = e.target.dataset.id;
+                            const title = e.target.dataset.title;
+                            const fieldName = inputId.includes('speaker') ? 'event_speakers[]' : 'event_organizers[]';
+
+                            const emptyMessage = container.querySelector('.event-empty-message');
+                            if (emptyMessage) {
+                                emptyMessage.remove();
+                            }
+
+                            const chip = document.createElement('span');
+                            chip.className = 'event-chip';
+                            chip.dataset.id = id;
+                            chip.innerHTML = `${title}<button type="button" class="event-chip-remove">&times;</button><input type="hidden" name="${fieldName}" value="${id}">`;
+                            container.appendChild(chip);
+
+                            input.value = '';
+                            results.style.display = 'none';
+                        }
+                    });
+
+                    container.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('event-chip-remove')) {
+                            e.target.closest('.event-chip').remove();
+                        }
+                    });
+
+                    document.addEventListener('click', function(e) {
+                        if (!input.contains(e.target) && !results.contains(e.target)) {
+                            results.style.display = 'none';
+                        }
+                    });
+                }
+            })();
+            </script>
         </div>
         <?php
     }
