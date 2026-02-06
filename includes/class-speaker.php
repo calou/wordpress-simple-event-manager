@@ -1,6 +1,6 @@
 <?php
 /**
- * Speaker Post Type Class
+ * Speaker Page Handler Class
  *
  * @package Event_Manager
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Speaker Post Type Handler
+ * Speaker Page Handler
  */
 class Event_Manager_Speaker {
 
@@ -22,52 +22,38 @@ class Event_Manager_Speaker {
         add_action('init', array($this, 'register_speaker_post_type'));
         add_action('add_meta_boxes', array($this, 'add_speaker_meta_boxes'));
         add_action('save_post_speaker', array($this, 'save_speaker_meta'));
+        add_filter('the_content', array($this, 'append_speaker_content'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
     }
 
     /**
-     * Register Speaker Custom Post Type
+     * Register speaker custom post type
      */
     public function register_speaker_post_type() {
         $labels = array(
-            'name'                  => _x('Speakers', 'Post Type General Name', 'event-manager'),
-            'singular_name'         => _x('Speaker', 'Post Type Singular Name', 'event-manager'),
-            'menu_name'             => __('Speakers', 'event-manager'),
-            'name_admin_bar'        => __('Speaker', 'event-manager'),
-            'archives'              => __('Speaker Archives', 'event-manager'),
-            'attributes'            => __('Speaker Attributes', 'event-manager'),
-            'parent_item_colon'     => __('Parent Speaker:', 'event-manager'),
-            'all_items'             => __('All Speakers', 'event-manager'),
-            'add_new_item'          => __('Add New Speaker', 'event-manager'),
-            'add_new'               => __('Add New', 'event-manager'),
-            'new_item'              => __('New Speaker', 'event-manager'),
-            'edit_item'             => __('Edit Speaker', 'event-manager'),
-            'update_item'           => __('Update Speaker', 'event-manager'),
-            'view_item'             => __('View Speaker', 'event-manager'),
-            'view_items'            => __('View Speakers', 'event-manager'),
-            'search_items'          => __('Search Speaker', 'event-manager'),
-            'not_found'             => __('Not found', 'event-manager'),
-            'not_found_in_trash'    => __('Not found in Trash', 'event-manager'),
+            'name' => __('Speakers', 'event-manager'),
+            'singular_name' => __('Speaker', 'event-manager'),
+            'add_new' => __('Add New', 'event-manager'),
+            'add_new_item' => __('Add New Speaker', 'event-manager'),
+            'edit_item' => __('Edit Speaker', 'event-manager'),
+            'new_item' => __('New Speaker', 'event-manager'),
+            'view_item' => __('View Speaker', 'event-manager'),
+            'search_items' => __('Search Speakers', 'event-manager'),
+            'not_found' => __('No speakers found', 'event-manager'),
+            'not_found_in_trash' => __('No speakers found in trash', 'event-manager'),
         );
 
         $args = array(
-            'label'                 => __('Speaker', 'event-manager'),
-            'description'           => __('Event speakers', 'event-manager'),
-            'labels'                => $labels,
-            'supports'              => array('title', 'editor', 'thumbnail', 'excerpt'),
-            'hierarchical'          => false,
-            'public'                => true,
-            'show_ui'               => true,
-            'show_in_menu'          => true,
-            'menu_position'         => 20,
-            'menu_icon'             => 'dashicons-businessperson',
-            'show_in_admin_bar'     => true,
-            'show_in_nav_menus'     => true,
-            'can_export'            => true,
-            'has_archive'           => true,
-            'exclude_from_search'   => false,
-            'publicly_queryable'    => true,
-            'capability_type'       => 'post',
-            'show_in_rest'          => true,
+            'labels' => $labels,
+            'public' => true,
+            'has_archive' => true,
+            'publicly_queryable' => true,
+            'show_ui' => true,
+            'show_in_menu' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-microphone',
+            'supports' => array('title', 'editor', 'thumbnail', 'excerpt'),
+            'rewrite' => array('slug' => 'speaker'),
         );
 
         register_post_type('speaker', $args);
@@ -208,5 +194,32 @@ class Event_Manager_Speaker {
 
         $json_data = wp_json_encode($speaker_data);
         update_post_meta($post_id, '_speaker_data', $json_data);
+    }
+
+    /**
+     * Append speaker metadata to content
+     */
+    public function append_speaker_content($content) {
+        // Only on single speaker pages and in the main query
+        if (!is_singular('speaker') || !in_the_loop() || !is_main_query()) {
+            return $content;
+        }
+
+        $speaker_data = event_manager_get_speaker_data(get_the_ID());
+
+        ob_start();
+        include EVENT_MANAGER_PLUGIN_DIR . 'templates/content-speaker.php';
+        $speaker_content = ob_get_clean();
+
+        return $content . $speaker_content;
+    }
+
+    /**
+     * Enqueue frontend styles
+     */
+    public function enqueue_frontend_styles() {
+        if (is_singular('speaker')) {
+            wp_enqueue_style('event-manager-frontend', EVENT_MANAGER_PLUGIN_URL . 'assets/css/frontend.css', array(), EVENT_MANAGER_VERSION);
+        }
     }
 }

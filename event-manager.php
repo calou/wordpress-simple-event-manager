@@ -97,6 +97,25 @@ function event_manager_init() {
 add_action('plugins_loaded', 'event_manager_init');
 
 /**
+ * Theme compatibility wrappers
+ * Default wrappers that can be overridden by themes
+ */
+if (!function_exists('event_manager_output_content_wrapper')) {
+    function event_manager_output_content_wrapper() {
+        echo '<div class="event-manager-content">';
+    }
+}
+
+if (!function_exists('event_manager_output_content_wrapper_end')) {
+    function event_manager_output_content_wrapper_end() {
+        echo '</div>';
+    }
+}
+
+add_action('event_manager_before_main_content', 'event_manager_output_content_wrapper', 10);
+add_action('event_manager_after_main_content', 'event_manager_output_content_wrapper_end', 10);
+
+/**
  * Helper function to get event data from JSON metadata
  */
 function event_manager_get_event_data($post_id = null) {
