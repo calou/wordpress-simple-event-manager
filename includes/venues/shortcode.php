@@ -125,6 +125,34 @@ function event_manager_venue_shortcode_render($atts) {
             </div>
         <?php endif; ?>
 
+        <!-- Contacts -->
+        <?php if (!empty($venue_data['contacts'])) : ?>
+            <div class="venue-section">
+                <h3><?php _e('Contacts', 'event-manager'); ?></h3>
+                <div class="venue-contacts">
+                    <?php foreach ($venue_data['contacts'] as $contact) : ?>
+                        <div class="venue-contact">
+                            <div class="venue-contact-name"><?php echo esc_html($contact['name']); ?></div>
+                            <div class="venue-contact-info">
+                                <?php if (!empty($contact['email'])) : ?>
+                                    <span class="venue-contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <a href="mailto:<?php echo esc_attr($contact['email']); ?>"><?php echo esc_html($contact['email']); ?></a>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if (!empty($contact['phone'])) : ?>
+                                    <span class="venue-contact-item">
+                                        <i class="fas fa-phone"></i>
+                                        <a href="tel:<?php echo esc_attr($contact['phone']); ?>"><?php echo esc_html($contact['phone']); ?></a>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Events at this venue -->
         <?php if (!empty($upcoming_events) || !empty($past_events)) : ?>
             <div class="venue-section">

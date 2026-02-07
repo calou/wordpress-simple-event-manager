@@ -131,6 +131,65 @@ function event_manager_venue_render_meta_box($post) {
             <label for="venue_website"><strong><?php _e('Website:', 'event-manager'); ?></strong></label><br>
             <input type="url" id="venue_website" name="venue_website" value="<?php echo esc_attr($venue_data['website']); ?>" style="width: 100%;" placeholder="https://">
         </p>
+
+        <hr>
+        <h4><?php _e('Contacts', 'event-manager'); ?></h4>
+        <div id="venue-contacts-list">
+            <?php
+            $contacts = !empty($venue_data['contacts']) ? $venue_data['contacts'] : array();
+            foreach ($contacts as $i => $contact) :
+            ?>
+                <div class="venue-contact-row" style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; background: #f9f9f9;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: end;">
+                        <div>
+                            <label><strong><?php _e('Name:', 'event-manager'); ?></strong></label><br>
+                            <input type="text" name="venue_contacts[<?php echo $i; ?>][name]" value="<?php echo esc_attr($contact['name']); ?>" style="width: 100%;" required>
+                        </div>
+                        <div>
+                            <label><strong><?php _e('Email:', 'event-manager'); ?></strong></label><br>
+                            <input type="email" name="venue_contacts[<?php echo $i; ?>][email]" value="<?php echo esc_attr($contact['email']); ?>" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label><strong><?php _e('Phone:', 'event-manager'); ?></strong></label><br>
+                            <input type="tel" name="venue_contacts[<?php echo $i; ?>][phone]" value="<?php echo esc_attr($contact['phone']); ?>" style="width: 100%;">
+                        </div>
+                    </div>
+                    <p style="margin: 8px 0 0;"><button type="button" class="button venue-remove-contact"><?php _e('Remove', 'event-manager'); ?></button></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <p><button type="button" class="button" id="venue-add-contact"><?php _e('Add Contact', 'event-manager'); ?></button></p>
+
+        <script>
+        (function() {
+            var list = document.getElementById('venue-contacts-list');
+            var addBtn = document.getElementById('venue-add-contact');
+            var index = <?php echo count($contacts); ?>;
+
+            addBtn.addEventListener('click', function() {
+                var row = document.createElement('div');
+                row.className = 'venue-contact-row';
+                row.style.cssText = 'border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; background: #f9f9f9;';
+                row.innerHTML = '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: end;">' +
+                    '<div><label><strong><?php echo esc_js(__('Name:', 'event-manager')); ?></strong></label><br>' +
+                    '<input type="text" name="venue_contacts[' + index + '][name]" style="width: 100%;" required></div>' +
+                    '<div><label><strong><?php echo esc_js(__('Email:', 'event-manager')); ?></strong></label><br>' +
+                    '<input type="email" name="venue_contacts[' + index + '][email]" style="width: 100%;"></div>' +
+                    '<div><label><strong><?php echo esc_js(__('Phone:', 'event-manager')); ?></strong></label><br>' +
+                    '<input type="tel" name="venue_contacts[' + index + '][phone]" style="width: 100%;"></div>' +
+                    '</div>' +
+                    '<p style="margin: 8px 0 0;"><button type="button" class="button venue-remove-contact"><?php echo esc_js(__('Remove', 'event-manager')); ?></button></p>';
+                list.appendChild(row);
+                index++;
+            });
+
+            list.addEventListener('click', function(e) {
+                if (e.target.classList.contains('venue-remove-contact')) {
+                    e.target.closest('.venue-contact-row').remove();
+                }
+            });
+        })();
+        </script>
     </div>
     <?php
 }
@@ -151,6 +210,24 @@ function event_manager_venue_save_meta($post_id) {
         return;
     }
 
+    $contacts = array();
+    if (isset($_POST['venue_contacts']) && is_array($_POST['venue_contacts'])) {
+        foreach ($_POST['venue_contacts'] as $contact) {
+            $name = isset($contact['name']) ? sanitize_text_field($contact['name']) : '';
+            $email = isset($contact['email']) ? sanitize_email($contact['email']) : '';
+            $phone = isset($contact['phone']) ? sanitize_text_field($contact['phone']) : '';
+
+            // Name is mandatory, and at least one of email/phone required
+            if (!empty($name) && (!empty($email) || !empty($phone))) {
+                $contacts[] = array(
+                    'name' => $name,
+                    'email' => $email,
+                    'phone' => $phone,
+                );
+            }
+        }
+    }
+
     $venue_data = array(
         'address' => isset($_POST['venue_address']) ? sanitize_text_field($_POST['venue_address']) : '',
         'city' => isset($_POST['venue_city']) ? sanitize_text_field($_POST['venue_city']) : '',
@@ -160,6 +237,7 @@ function event_manager_venue_save_meta($post_id) {
         'capacity' => isset($_POST['venue_capacity']) ? sanitize_text_field($_POST['venue_capacity']) : '',
         'phone' => isset($_POST['venue_phone']) ? sanitize_text_field($_POST['venue_phone']) : '',
         'website' => isset($_POST['venue_website']) ? esc_url_raw($_POST['venue_website']) : '',
+        'contacts' => $contacts,
     );
 
     $json_data = wp_json_encode($venue_data);
@@ -181,6 +259,7 @@ function event_manager_venue_get_data($post_id) {
         'capacity' => '',
         'phone' => '',
         'website' => '',
+        'contacts' => array(),
     );
 
     if (!empty($json_data)) {
@@ -220,6 +299,7 @@ function event_manager_get_venue_data($venue_id) {
         'capacity' => $venue_meta['capacity'],
         'phone' => $venue_meta['phone'],
         'website' => $venue_meta['website'],
+        'contacts' => $venue_meta['contacts'],
         'thumbnail' => get_the_post_thumbnail_url($venue_id, 'medium'),
     );
 }
