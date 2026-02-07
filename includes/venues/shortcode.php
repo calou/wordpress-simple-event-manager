@@ -71,97 +71,59 @@ function event_manager_venue_shortcode_render($atts) {
     ob_start();
     ?>
     <div class="venue-profile">
-        <!-- Map + Info side by side -->
-        <div class="venue-hero">
-            <!-- Venue Info Card (Google Maps style) -->
-            <div class="venue-card">
-                <div class="venue-card-header">
-                    <?php if (has_post_thumbnail($post_id)) : ?>
-                        <div class="venue-photo">
-                            <?php echo get_the_post_thumbnail($post_id, 'medium', array('alt' => get_the_title($post_id))); ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="venue-card-title">
-                        <h1 class="venue-name"><?php echo esc_html(get_the_title($post_id)); ?></h1>
-                        <?php if (!empty($full_address)) : ?>
-                            <div class="venue-subtitle"><?php echo esc_html($full_address); ?></div>
-                        <?php endif; ?>
-                    </div>
+        <!-- Venue Header -->
+        <div class="venue-header">
+            <?php if (has_post_thumbnail($post_id)) : ?>
+                <div class="venue-photo">
+                    <?php echo get_the_post_thumbnail($post_id, 'medium', array('alt' => get_the_title($post_id))); ?>
                 </div>
+            <?php endif; ?>
 
-                <div class="venue-card-details">
-                    <?php if (!empty($full_address)) : ?>
-                        <div class="venue-detail-row">
-                            <i class="fas fa-location-dot"></i>
-                            <div>
-                                <?php if ($venue_data['address']) : ?>
-                                    <div><?php echo esc_html($venue_data['address']); ?></div>
-                                <?php endif; ?>
-                                <div>
-                                    <?php
-                                    $locality = array_filter(array(
-                                        $venue_data['city'],
-                                        $venue_data['state'],
-                                        $venue_data['zip'],
-                                    ));
-                                    if (!empty($locality)) {
-                                        echo esc_html(implode(', ', $locality));
-                                    }
-                                    ?>
-                                </div>
-                                <?php if ($venue_data['country']) : ?>
-                                    <div><?php echo esc_html($venue_data['country']); ?></div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+            <div class="venue-header-info">
+                <h1 class="venue-name">
+                    <?php if ($venue_data['website']) : ?>
+                        <a href="<?php echo esc_url($venue_data['website']); ?>" target="_blank" rel="noopener"><?php echo esc_html(get_the_title($post_id)); ?></a>
+                    <?php else : ?>
+                        <?php echo esc_html(get_the_title($post_id)); ?>
                     <?php endif; ?>
+                </h1>
 
+                <?php if (!empty($full_address)) : ?>
+                    <div class="venue-address"><?php echo esc_html($full_address); ?></div>
+                <?php endif; ?>
+
+                <div class="venue-meta">
                     <?php if ($venue_data['phone']) : ?>
-                        <div class="venue-detail-row">
+                        <span class="venue-meta-item">
                             <i class="fas fa-phone"></i>
                             <a href="tel:<?php echo esc_attr($venue_data['phone']); ?>"><?php echo esc_html($venue_data['phone']); ?></a>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($venue_data['website']) : ?>
-                        <div class="venue-detail-row">
-                            <i class="fas fa-globe"></i>
-                            <a href="<?php echo esc_url($venue_data['website']); ?>" target="_blank" rel="noopener"><?php echo esc_html(preg_replace('#^https?://#', '', $venue_data['website'])); ?></a>
-                        </div>
+                        </span>
                     <?php endif; ?>
 
                     <?php if ($venue_data['capacity']) : ?>
-                        <div class="venue-detail-row">
+                        <span class="venue-meta-item">
                             <i class="fas fa-users"></i>
-                            <span><?php printf(__('Capacity: %s', 'event-manager'), esc_html($venue_data['capacity'])); ?></span>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($full_address)) : ?>
-                        <div class="venue-detail-row venue-directions">
-                            <i class="fas fa-diamond-turn-right"></i>
-                            <a href="https://www.google.com/maps/dir/?api=1&destination=<?php echo urlencode($full_address); ?>" target="_blank" rel="noopener"><?php _e('Get directions', 'event-manager'); ?></a>
-                        </div>
+                            <?php printf(__('Capacity: %s', 'event-manager'), esc_html($venue_data['capacity'])); ?>
+                        </span>
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- Map -->
-            <?php if (!empty($full_address)) : ?>
-                <div class="venue-map">
-                    <iframe
-                        width="100%"
-                        height="100%"
-                        frameborder="0"
-                        style="border:0"
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        src="https://www.google.com/maps?q=<?php echo urlencode($full_address); ?>&output=embed">
-                    </iframe>
-                </div>
-            <?php endif; ?>
         </div>
+
+        <!-- Map -->
+        <?php if (!empty($full_address)) : ?>
+            <div class="venue-map">
+                <iframe
+                    width="100%"
+                    height="400"
+                    frameborder="0"
+                    style="border:0"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q=<?php echo urlencode($full_address); ?>&output=embed">
+                </iframe>
+            </div>
+        <?php endif; ?>
 
         <!-- Events at this venue -->
         <?php if (!empty($upcoming_events) || !empty($past_events)) : ?>
