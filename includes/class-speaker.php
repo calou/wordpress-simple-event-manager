@@ -56,10 +56,6 @@ class Event_Manager_Speaker {
             'supports' => array('title', 'editor', 'thumbnail', 'excerpt'),
             'rewrite' => array('slug' => 'speaker'),
             'template' => array(
-                array('core/html', array(
-                    'content' => '[speaker_metadata]'
-                )),
-                array('core/separator'),
                 array('core/paragraph', array(
                     'placeholder' => 'Add speaker biography and additional information here...'
                 )),
