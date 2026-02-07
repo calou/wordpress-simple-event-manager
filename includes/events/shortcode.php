@@ -86,11 +86,12 @@ function event_manager_event_format_date_range($start_date, $end_date) {
 }
 
 /**
- * Get child events for a given event
+ * Get child events for a given event using page hierarchy
  */
 function event_manager_event_get_children($post_id) {
-    $all_event_pages = get_posts(array(
+    $child_pages = get_posts(array(
         'post_type' => 'page',
+        'post_parent' => $post_id,
         'posts_per_page' => -1,
         'meta_query' => array(
             array(
@@ -101,14 +102,11 @@ function event_manager_event_get_children($post_id) {
     ));
 
     $child_events = array();
-    foreach ($all_event_pages as $page) {
-        $page_data = event_manager_get_event_data($page->ID);
-        if (!empty($page_data['parent_event_id']) && (int) $page_data['parent_event_id'] === $post_id) {
-            $child_events[] = array(
-                'post' => $page,
-                'data' => $page_data,
-            );
-        }
+    foreach ($child_pages as $page) {
+        $child_events[] = array(
+            'post' => $page,
+            'data' => event_manager_get_event_data($page->ID),
+        );
     }
 
     return $child_events;
@@ -132,10 +130,11 @@ function event_manager_event_metadata_render($atts) {
         $venue = event_manager_get_venue_data($event_data['venue_id']);
     }
 
-    // Get parent event
+    // Get parent event from page hierarchy
     $parent_event = null;
-    if (!empty($event_data['parent_event_id'])) {
-        $parent = get_post($event_data['parent_event_id']);
+    $post = get_post($post_id);
+    if ($post && $post->post_parent) {
+        $parent = get_post($post->post_parent);
         if ($parent && $parent->post_status === 'publish') {
             $parent_event = $parent;
         }
