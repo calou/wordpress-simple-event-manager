@@ -22,47 +22,22 @@ define('EVENT_MANAGER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EVENT_MANAGER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Include required files
-require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-speaker.php';
-require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-speaker-block.php';
-require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-venue.php';
-require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-event-metabox.php';
+require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/speakers/post-type.php';
+require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/speakers/shortcode.php';
+require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/venues/post-type.php';
+require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/events/metabox.php';
 
 /**
- * Main Event Manager Class
+ * Enqueue admin scripts and styles
  */
-class Event_Manager {
-
-    /**
-     * Constructor
-     */
-    public function __construct() {
-        // Initialize components
-        new Event_Manager_Speaker();
-        new Event_Manager_Speaker_Block();
-        new Event_Manager_Venue();
-        new Event_Manager_Metabox();
-
-        // Enqueue admin scripts and styles
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+function event_manager_enqueue_admin_scripts($hook) {
+    if ('post.php' !== $hook && 'post-new.php' !== $hook) {
+        return;
     }
 
-    /**
-     * Enqueue admin scripts and styles
-     */
-    public function enqueue_admin_scripts($hook) {
-        if ('post.php' !== $hook && 'post-new.php' !== $hook) {
-            return;
-        }
-
-        wp_enqueue_style('event-manager-admin', EVENT_MANAGER_PLUGIN_URL . 'assets/css/admin.css', array(), EVENT_MANAGER_VERSION);
-    }
+    wp_enqueue_style('event-manager-admin', EVENT_MANAGER_PLUGIN_URL . 'assets/css/admin.css', array(), EVENT_MANAGER_VERSION);
 }
-
-// Initialize the plugin
-function event_manager_init() {
-    new Event_Manager();
-}
-add_action('plugins_loaded', 'event_manager_init');
+add_action('admin_enqueue_scripts', 'event_manager_enqueue_admin_scripts');
 
 /**
  * Theme compatibility wrappers
