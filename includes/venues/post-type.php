@@ -13,6 +13,9 @@ if (!defined('ABSPATH')) {
 add_action('init', 'event_manager_venue_register_post_type');
 add_action('add_meta_boxes_venue', 'event_manager_venue_add_meta_boxes');
 add_action('save_post_venue', 'event_manager_venue_save_meta');
+add_filter('default_template_types', 'event_manager_venue_add_template_type');
+add_filter('get_block_templates', 'event_manager_venue_add_block_template', 10, 3);
+add_action('wp_enqueue_scripts', 'event_manager_venue_enqueue_frontend_styles');
 
 /**
  * Register Venue Custom Post Type
@@ -219,4 +222,63 @@ function event_manager_get_venue_data($venue_id) {
         'website' => $venue_meta['website'],
         'thumbnail' => get_the_post_thumbnail_url($venue_id, 'medium'),
     );
+}
+
+/**
+ * Add venue template type
+ */
+function event_manager_venue_add_template_type($template_types) {
+    $template_types['single-venue'] = array(
+        'title' => __('Single Venue', 'event-manager'),
+        'description' => __('Displays a single venue post', 'event-manager'),
+    );
+    return $template_types;
+}
+
+/**
+ * Register block template for venue post type
+ */
+function event_manager_venue_add_block_template($query_result, $query, $template_type) {
+    $template_file = EVENT_MANAGER_PLUGIN_DIR . 'templates/single-venue.html';
+
+    if (!file_exists($template_file)) {
+        return $query_result;
+    }
+
+    $template_content = file_get_contents($template_file);
+
+    $new_template = new WP_Block_Template();
+    $new_template->type = 'wp_template';
+    $new_template->theme = get_stylesheet();
+    $new_template->slug = 'single-venue';
+    $new_template->id = get_stylesheet() . '//single-venue';
+    $new_template->title = __('Single Venue', 'event-manager');
+    $new_template->description = __('Template for displaying single venue posts', 'event-manager');
+    $new_template->source = 'plugin';
+    $new_template->origin = 'plugin';
+    $new_template->content = $template_content;
+    $new_template->status = 'publish';
+    $new_template->has_theme_file = false;
+    $new_template->is_custom = false;
+    $new_template->post_types = array('venue');
+
+    if (
+        (isset($query['slug__in']) && in_array('single-venue', $query['slug__in'])) ||
+        (isset($query['post_type']) && $query['post_type'] === 'venue') ||
+        !isset($query['slug__in'])
+    ) {
+        $query_result[] = $new_template;
+    }
+
+    return $query_result;
+}
+
+/**
+ * Enqueue frontend styles for venue pages
+ */
+function event_manager_venue_enqueue_frontend_styles() {
+    if (is_singular('venue')) {
+        wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
+        wp_enqueue_style('event-manager-venue-content', EVENT_MANAGER_PLUGIN_URL . 'assets/css/venue-content.css', array('font-awesome'), EVENT_MANAGER_VERSION);
+    }
 }
