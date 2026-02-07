@@ -83,57 +83,50 @@ function event_manager_venue_add_meta_boxes() {
 function event_manager_venue_render_meta_box($post) {
     wp_nonce_field('venue_meta_box', 'venue_meta_box_nonce');
 
-    $address = get_post_meta($post->ID, '_venue_address', true);
-    $city = get_post_meta($post->ID, '_venue_city', true);
-    $state = get_post_meta($post->ID, '_venue_state', true);
-    $zip = get_post_meta($post->ID, '_venue_zip', true);
-    $country = get_post_meta($post->ID, '_venue_country', true);
-    $capacity = get_post_meta($post->ID, '_venue_capacity', true);
-    $phone = get_post_meta($post->ID, '_venue_phone', true);
-    $website = get_post_meta($post->ID, '_venue_website', true);
+    $venue_data = event_manager_venue_get_data($post->ID);
 
     ?>
     <div class="venue-meta-box">
         <p>
             <label for="venue_address"><strong><?php _e('Address:', 'event-manager'); ?></strong></label><br>
-            <input type="text" id="venue_address" name="venue_address" value="<?php echo esc_attr($address); ?>" style="width: 100%;">
+            <input type="text" id="venue_address" name="venue_address" value="<?php echo esc_attr($venue_data['address']); ?>" style="width: 100%;">
         </p>
 
         <p>
             <label for="venue_city"><strong><?php _e('City:', 'event-manager'); ?></strong></label><br>
-            <input type="text" id="venue_city" name="venue_city" value="<?php echo esc_attr($city); ?>" style="width: 100%;">
+            <input type="text" id="venue_city" name="venue_city" value="<?php echo esc_attr($venue_data['city']); ?>" style="width: 100%;">
         </p>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div>
                 <label for="venue_state"><strong><?php _e('State/Province:', 'event-manager'); ?></strong></label><br>
-                <input type="text" id="venue_state" name="venue_state" value="<?php echo esc_attr($state); ?>" style="width: 100%;">
+                <input type="text" id="venue_state" name="venue_state" value="<?php echo esc_attr($venue_data['state']); ?>" style="width: 100%;">
             </div>
 
             <div>
                 <label for="venue_zip"><strong><?php _e('ZIP/Postal Code:', 'event-manager'); ?></strong></label><br>
-                <input type="text" id="venue_zip" name="venue_zip" value="<?php echo esc_attr($zip); ?>" style="width: 100%;">
+                <input type="text" id="venue_zip" name="venue_zip" value="<?php echo esc_attr($venue_data['zip']); ?>" style="width: 100%;">
             </div>
         </div>
 
         <p>
             <label for="venue_country"><strong><?php _e('Country:', 'event-manager'); ?></strong></label><br>
-            <input type="text" id="venue_country" name="venue_country" value="<?php echo esc_attr($country); ?>" style="width: 100%;">
+            <input type="text" id="venue_country" name="venue_country" value="<?php echo esc_attr($venue_data['country']); ?>" style="width: 100%;">
         </p>
 
         <p>
             <label for="venue_capacity"><strong><?php _e('Capacity:', 'event-manager'); ?></strong></label><br>
-            <input type="number" id="venue_capacity" name="venue_capacity" value="<?php echo esc_attr($capacity); ?>" style="width: 100%; max-width: 200px;">
+            <input type="number" id="venue_capacity" name="venue_capacity" value="<?php echo esc_attr($venue_data['capacity']); ?>" style="width: 100%; max-width: 200px;">
         </p>
 
         <p>
             <label for="venue_phone"><strong><?php _e('Phone:', 'event-manager'); ?></strong></label><br>
-            <input type="tel" id="venue_phone" name="venue_phone" value="<?php echo esc_attr($phone); ?>" style="width: 100%; max-width: 300px;">
+            <input type="tel" id="venue_phone" name="venue_phone" value="<?php echo esc_attr($venue_data['phone']); ?>" style="width: 100%; max-width: 300px;">
         </p>
 
         <p>
             <label for="venue_website"><strong><?php _e('Website:', 'event-manager'); ?></strong></label><br>
-            <input type="url" id="venue_website" name="venue_website" value="<?php echo esc_attr($website); ?>" style="width: 100%;" placeholder="https://">
+            <input type="url" id="venue_website" name="venue_website" value="<?php echo esc_attr($venue_data['website']); ?>" style="width: 100%;" placeholder="https://">
         </p>
     </div>
     <?php
@@ -155,18 +148,50 @@ function event_manager_venue_save_meta($post_id) {
         return;
     }
 
-    $fields = array('address', 'city', 'state', 'zip', 'country', 'capacity', 'phone', 'website');
+    $venue_data = array(
+        'address' => isset($_POST['venue_address']) ? sanitize_text_field($_POST['venue_address']) : '',
+        'city' => isset($_POST['venue_city']) ? sanitize_text_field($_POST['venue_city']) : '',
+        'state' => isset($_POST['venue_state']) ? sanitize_text_field($_POST['venue_state']) : '',
+        'zip' => isset($_POST['venue_zip']) ? sanitize_text_field($_POST['venue_zip']) : '',
+        'country' => isset($_POST['venue_country']) ? sanitize_text_field($_POST['venue_country']) : '',
+        'capacity' => isset($_POST['venue_capacity']) ? sanitize_text_field($_POST['venue_capacity']) : '',
+        'phone' => isset($_POST['venue_phone']) ? sanitize_text_field($_POST['venue_phone']) : '',
+        'website' => isset($_POST['venue_website']) ? esc_url_raw($_POST['venue_website']) : '',
+    );
 
-    foreach ($fields as $field) {
-        if (isset($_POST['venue_' . $field])) {
-            $value = sanitize_text_field($_POST['venue_' . $field]);
-            update_post_meta($post_id, '_venue_' . $field, $value);
-        }
-    }
+    $json_data = wp_json_encode($venue_data);
+    update_post_meta($post_id, '_venue_data', $json_data);
 }
 
 /**
- * Helper function to get venue data
+ * Get venue data from JSON metadata
+ */
+function event_manager_venue_get_data($post_id) {
+    $json_data = get_post_meta($post_id, '_venue_data', true);
+
+    $default_data = array(
+        'address' => '',
+        'city' => '',
+        'state' => '',
+        'zip' => '',
+        'country' => '',
+        'capacity' => '',
+        'phone' => '',
+        'website' => '',
+    );
+
+    if (!empty($json_data)) {
+        $decoded = json_decode($json_data, true);
+        if (is_array($decoded)) {
+            return array_merge($default_data, $decoded);
+        }
+    }
+
+    return $default_data;
+}
+
+/**
+ * Helper function to get venue data with post info
  */
 function event_manager_get_venue_data($venue_id) {
     if (empty($venue_id)) {
@@ -178,18 +203,20 @@ function event_manager_get_venue_data($venue_id) {
         return null;
     }
 
+    $venue_meta = event_manager_venue_get_data($venue_id);
+
     return array(
         'id' => $venue->ID,
         'name' => $venue->post_title,
         'description' => $venue->post_content,
-        'address' => get_post_meta($venue_id, '_venue_address', true),
-        'city' => get_post_meta($venue_id, '_venue_city', true),
-        'state' => get_post_meta($venue_id, '_venue_state', true),
-        'zip' => get_post_meta($venue_id, '_venue_zip', true),
-        'country' => get_post_meta($venue_id, '_venue_country', true),
-        'capacity' => get_post_meta($venue_id, '_venue_capacity', true),
-        'phone' => get_post_meta($venue_id, '_venue_phone', true),
-        'website' => get_post_meta($venue_id, '_venue_website', true),
+        'address' => $venue_meta['address'],
+        'city' => $venue_meta['city'],
+        'state' => $venue_meta['state'],
+        'zip' => $venue_meta['zip'],
+        'country' => $venue_meta['country'],
+        'capacity' => $venue_meta['capacity'],
+        'phone' => $venue_meta['phone'],
+        'website' => $venue_meta['website'],
         'thumbnail' => get_the_post_thumbnail_url($venue_id, 'medium'),
     );
 }
