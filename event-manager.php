@@ -27,6 +27,7 @@ require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/speakers/shortcode.php';
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/venues/post-type.php';
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/venues/shortcode.php';
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/events/metabox.php';
+require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/events/shortcode.php';
 
 /**
  * Enqueue admin scripts and styles

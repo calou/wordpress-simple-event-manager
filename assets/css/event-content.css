@@ -1,0 +1,253 @@
+/* Event Content Template Styles */
+
+/* Profile Container */
+.event-profile {
+    margin-bottom: 2em;
+}
+
+/* Breadcrumb */
+.event-breadcrumb {
+    margin-bottom: 1em;
+    font-size: 0.9em;
+}
+
+.event-breadcrumb a {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.event-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.event-breadcrumb i {
+    margin-right: 0.3em;
+    font-size: 0.85em;
+}
+
+/* Event Header */
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2em;
+    margin-bottom: 2em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid #ddd;
+}
+
+.event-header-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.event-header-date,
+.event-header-venue {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 1.05em;
+    color: #444;
+}
+
+.event-header-date i,
+.event-header-venue i {
+    color: #70757a;
+    width: 1em;
+    text-align: center;
+}
+
+.event-header-venue a {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.event-header-venue a:hover {
+    text-decoration: underline;
+}
+
+.event-header-location {
+    color: #70757a;
+}
+
+/* Registration */
+.event-registration {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5em;
+    flex-shrink: 0;
+}
+
+.event-reg-deadline {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.event-reg-deadline i {
+    color: #70757a;
+    margin-right: 0.3em;
+}
+
+.event-reg-button {
+    display: inline-block;
+    padding: 0.6em 1.5em;
+    background: #1a73e8;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.95em;
+    transition: background 0.2s;
+}
+
+.event-reg-button:hover {
+    background: #1557b0;
+    color: #fff;
+}
+
+/* Sections */
+.event-section {
+    margin-bottom: 2em;
+    padding-bottom: 2em;
+    border-bottom: 1px solid #ddd;
+}
+
+.event-section:last-child {
+    border-bottom: none;
+}
+
+.event-section h3 {
+    margin: 0 0 1em 0;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+/* Speakers */
+.event-speakers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+.event-speaker-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    padding: 0.75em 1em;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.event-speaker-card:hover {
+    border-color: #1a73e8;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-speaker-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.event-speaker-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8eaed;
+    color: #9aa0a6;
+    font-size: 1.2em;
+}
+
+.event-speaker-info {
+    min-width: 0;
+}
+
+.event-speaker-name {
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.event-speaker-org {
+    font-size: 0.85em;
+    color: #666;
+}
+
+/* Organizers */
+.event-organizers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+.event-organizer {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.event-organizer-avatar {
+    border-radius: 50%;
+}
+
+.event-organizer-name {
+    font-size: 0.95em;
+}
+
+/* Programme (sub-events) */
+.event-programme-item {
+    margin-bottom: 1em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid #eee;
+}
+
+.event-programme-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.event-programme-title {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 0.2em;
+}
+
+.event-programme-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.event-programme-title a:hover {
+    color: #1a73e8;
+}
+
+.event-programme-date {
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .event-header {
+        flex-direction: column;
+    }
+
+    .event-registration {
+        align-items: flex-start;
+    }
+
+    .event-speakers {
+        flex-direction: column;
+    }
+
+    .event-speaker-card {
+        width: 100%;
+    }
+}
