@@ -10,10 +10,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-add_action('admin_menu', 'event_manager_admin_menu');
+add_action('admin_menu', 'event_manager_admin_menu', 9);
 
 /**
- * Register the Events admin menu
+ * Register the Event Manager admin menu
  */
 function event_manager_admin_menu() {
     add_menu_page(
@@ -34,45 +34,10 @@ function event_manager_admin_menu() {
         'event-manager',
         'event_manager_events_list_page'
     );
-
-    $hook = add_submenu_page(
-        'event-manager',
-        __('Add New Event', 'event-manager'),
-        __('Add New Event', 'event-manager'),
-        'edit_pages',
-        'event-manager-new',
-        '__return_false'
-    );
-
-    add_action('load-' . $hook, 'event_manager_handle_new_event');
 }
 
 /**
- * Handle "Add New" event: create an auto-draft page with the Event template and redirect to the editor
- */
-function event_manager_handle_new_event() {
-    if (!current_user_can('edit_pages')) {
-        wp_die(__('You do not have permission to create events.', 'event-manager'));
-    }
-
-    $post_id = wp_insert_post(array(
-        'post_type' => 'page',
-        'post_status' => 'auto-draft',
-        'post_title' => '',
-    ));
-
-    if ($post_id && !is_wp_error($post_id)) {
-        update_post_meta($post_id, '_wp_page_template', EVENT_MANAGER_EVENT_TEMPLATE);
-        wp_safe_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
-        exit;
-    }
-
-    wp_safe_redirect(admin_url('admin.php?page=event-manager'));
-    exit;
-}
-
-/**
- * Render the "All Events" admin page
+ * Render the "Events" admin page
  */
 function event_manager_events_list_page() {
     $events = get_posts(array(
@@ -87,7 +52,6 @@ function event_manager_events_list_page() {
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline"><?php _e('Events', 'event-manager'); ?></h1>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=event-manager-new')); ?>" class="page-title-action"><?php _e('Add New', 'event-manager'); ?></a>
         <hr class="wp-header-end">
 
         <?php if (empty($events)) : ?>
