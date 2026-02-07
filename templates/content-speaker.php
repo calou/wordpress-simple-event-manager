@@ -10,79 +10,94 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$speaker_post = get_post(get_the_ID());
 ?>
 
-<div class="speaker-metadata">
-    <?php if ($speaker_data['position'] || $speaker_data['organization']) : ?>
-        <div class="speaker-role">
+<div class="speaker-profile">
+    <!-- Profile Header -->
+    <div class="speaker-header">
+        <?php if (has_post_thumbnail()) : ?>
+            <div class="speaker-photo">
+                <?php the_post_thumbnail('medium', array('alt' => get_the_title())); ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="speaker-header-info">
+            <h2 class="speaker-name"><?php echo esc_html($speaker_post->post_title); ?></h2>
+
             <?php if ($speaker_data['position']) : ?>
-                <strong><?php echo esc_html($speaker_data['position']); ?></strong>
+                <div class="speaker-position"><?php echo esc_html($speaker_data['position']); ?></div>
             <?php endif; ?>
+
             <?php if ($speaker_data['organization']) : ?>
-                <?php if ($speaker_data['position']) echo ' · '; ?>
-                <?php if ($speaker_data['organization_url']) : ?>
-                    <a href="<?php echo esc_url($speaker_data['organization_url']); ?>" target="_blank" rel="noopener">
+                <div class="speaker-organization">
+                    <?php if ($speaker_data['organization_url']) : ?>
+                        <a href="<?php echo esc_url($speaker_data['organization_url']); ?>" target="_blank" rel="noopener">
+                            <?php echo esc_html($speaker_data['organization']); ?>
+                        </a>
+                    <?php else : ?>
                         <?php echo esc_html($speaker_data['organization']); ?>
-                    </a>
-                <?php else : ?>
-                    <?php echo esc_html($speaker_data['organization']); ?>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
         </div>
-    <?php endif; ?>
+    </div>
 
+    <!-- Contact Information -->
     <?php if ($speaker_data['email'] || $speaker_data['phone'] || $speaker_data['website'] || $speaker_data['linkedin'] || $speaker_data['orcid']) : ?>
-        <div class="speaker-contact">
-            <h3><?php _e('Contact & Links', 'event-manager'); ?></h3>
-            <ul class="speaker-contact-list">
+        <div class="speaker-section">
+            <h3><?php _e('Contact Information', 'event-manager'); ?></h3>
+            <div class="speaker-contact-grid">
                 <?php if ($speaker_data['email']) : ?>
-                    <li>
-                        <span class="contact-label"><?php _e('Email:', 'event-manager'); ?></span>
+                    <div class="contact-item">
+                        <strong><?php _e('Email', 'event-manager'); ?></strong>
                         <a href="mailto:<?php echo esc_attr($speaker_data['email']); ?>">
                             <?php echo esc_html($speaker_data['email']); ?>
                         </a>
-                    </li>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($speaker_data['phone']) : ?>
-                    <li>
-                        <span class="contact-label"><?php _e('Phone:', 'event-manager'); ?></span>
+                    <div class="contact-item">
+                        <strong><?php _e('Phone', 'event-manager'); ?></strong>
                         <a href="tel:<?php echo esc_attr($speaker_data['phone']); ?>">
                             <?php echo esc_html($speaker_data['phone']); ?>
                         </a>
-                    </li>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($speaker_data['website']) : ?>
-                    <li>
-                        <span class="contact-label"><?php _e('Website:', 'event-manager'); ?></span>
+                    <div class="contact-item">
+                        <strong><?php _e('Website', 'event-manager'); ?></strong>
                         <a href="<?php echo esc_url($speaker_data['website']); ?>" target="_blank" rel="noopener">
                             <?php echo esc_html($speaker_data['website']); ?>
                         </a>
-                    </li>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($speaker_data['linkedin']) : ?>
-                    <li>
-                        <span class="contact-label"><?php _e('LinkedIn:', 'event-manager'); ?></span>
+                    <div class="contact-item">
+                        <strong><?php _e('LinkedIn', 'event-manager'); ?></strong>
                         <a href="<?php echo esc_url($speaker_data['linkedin']); ?>" target="_blank" rel="noopener">
                             <?php _e('View Profile', 'event-manager'); ?>
                         </a>
-                    </li>
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($speaker_data['orcid']) : ?>
-                    <li>
-                        <span class="contact-label"><?php _e('ORCID:', 'event-manager'); ?></span>
+                    <div class="contact-item">
+                        <strong><?php _e('ORCID', 'event-manager'); ?></strong>
                         <a href="https://orcid.org/<?php echo esc_attr($speaker_data['orcid']); ?>" target="_blank" rel="noopener">
                             <?php echo esc_html($speaker_data['orcid']); ?>
                         </a>
-                    </li>
+                    </div>
                 <?php endif; ?>
-            </ul>
+            </div>
         </div>
     <?php endif; ?>
 
+    <!-- Events -->
     <?php
     // Find events where this speaker is presenting
     $speaker_events = get_posts(array(
@@ -113,47 +128,53 @@ if (!defined('ABSPATH')) {
     }
     ?>
 
-    <?php if (!empty($upcoming_events)) : ?>
-        <div class="speaker-events upcoming">
-            <h3><?php _e('Upcoming Events', 'event-manager'); ?></h3>
-            <ul class="events-list">
-                <?php foreach ($upcoming_events as $event) :
-                    $event_data = event_manager_get_event_data($event->ID);
-                    ?>
-                    <li>
-                        <a href="<?php echo get_permalink($event->ID); ?>">
-                            <?php echo esc_html($event->post_title); ?>
-                        </a>
-                        <?php if ($event_data['start_date']) : ?>
-                            <span class="event-date">
-                                <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($event_data['start_date']))); ?>
-                            </span>
-                        <?php endif; ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
+    <?php if (!empty($upcoming_events) || !empty($past_events)) : ?>
+        <div class="speaker-section">
+            <h3><?php _e('Events', 'event-manager'); ?></h3>
 
-    <?php if (!empty($past_events)) : ?>
-        <div class="speaker-events past">
-            <h3><?php _e('Past Events', 'event-manager'); ?></h3>
-            <ul class="events-list">
-                <?php foreach ($past_events as $event) :
-                    $event_data = event_manager_get_event_data($event->ID);
-                    ?>
-                    <li>
-                        <a href="<?php echo get_permalink($event->ID); ?>">
-                            <?php echo esc_html($event->post_title); ?>
-                        </a>
-                        <?php if ($event_data['start_date']) : ?>
-                            <span class="event-date">
-                                <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($event_data['start_date']))); ?>
-                            </span>
-                        <?php endif; ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+            <?php if (!empty($upcoming_events)) : ?>
+                <div class="events-group">
+                    <h4><?php _e('Upcoming', 'event-manager'); ?></h4>
+                    <?php foreach ($upcoming_events as $event) :
+                        $event_data = event_manager_get_event_data($event->ID);
+                        ?>
+                        <div class="event-item">
+                            <div class="event-title">
+                                <a href="<?php echo get_permalink($event->ID); ?>">
+                                    <?php echo esc_html($event->post_title); ?>
+                                </a>
+                            </div>
+                            <?php if ($event_data['start_date']) : ?>
+                                <div class="event-date">
+                                    <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($event_data['start_date']))); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($past_events)) : ?>
+                <div class="events-group">
+                    <h4><?php _e('Past', 'event-manager'); ?></h4>
+                    <?php foreach ($past_events as $event) :
+                        $event_data = event_manager_get_event_data($event->ID);
+                        ?>
+                        <div class="event-item">
+                            <div class="event-title">
+                                <a href="<?php echo get_permalink($event->ID); ?>">
+                                    <?php echo esc_html($event->post_title); ?>
+                                </a>
+                            </div>
+                            <?php if ($event_data['start_date']) : ?>
+                                <div class="event-date">
+                                    <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($event_data['start_date']))); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>

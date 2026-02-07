@@ -1,0 +1,161 @@
+/* Speaker Content Template Styles - LinkedIn-like Layout */
+
+/* Profile Container */
+.speaker-profile {
+    max-width: 800px;
+    margin: 2em 0;
+}
+
+/* Header Section */
+.speaker-header {
+    display: flex;
+    gap: 2em;
+    margin-bottom: 2em;
+    padding-bottom: 2em;
+    border-bottom: 1px solid #ddd;
+}
+
+.speaker-photo {
+    flex-shrink: 0;
+}
+
+.speaker-photo img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.speaker-header-info {
+    flex: 1;
+}
+
+.speaker-name {
+    margin: 0 0 0.5em 0;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+.speaker-position {
+    font-size: 1.2em;
+    margin-bottom: 0.25em;
+}
+
+.speaker-organization {
+    font-size: 1em;
+    color: #666;
+}
+
+.speaker-organization a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.speaker-organization a:hover {
+    text-decoration: underline;
+}
+
+/* Section Containers */
+.speaker-section {
+    margin-bottom: 2em;
+    padding-bottom: 2em;
+    border-bottom: 1px solid #ddd;
+}
+
+.speaker-section:last-child {
+    border-bottom: none;
+}
+
+.speaker-section h3 {
+    margin: 0 0 1em 0;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+/* Contact Grid */
+.speaker-contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1em;
+}
+
+.contact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+}
+
+.contact-item strong {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.contact-item a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+
+/* Events Section */
+.events-group {
+    margin-bottom: 1.5em;
+}
+
+.events-group:last-child {
+    margin-bottom: 0;
+}
+
+.events-group h4 {
+    margin: 0 0 1em 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #666;
+}
+
+.event-item {
+    margin-bottom: 1.5em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid #eee;
+}
+
+.event-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.event-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 0.25em;
+}
+
+.event-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.event-title a:hover {
+    color: #0073aa;
+}
+
+.event-date {
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .speaker-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .speaker-contact-grid {
+        grid-template-columns: 1fr;
+    }
+}

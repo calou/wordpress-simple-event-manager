@@ -219,7 +219,7 @@ class Event_Manager_Speaker {
      */
     public function enqueue_frontend_styles() {
         if (is_singular('speaker')) {
-            wp_enqueue_style('event-manager-frontend', EVENT_MANAGER_PLUGIN_URL . 'assets/css/frontend.css', array(), EVENT_MANAGER_VERSION);
+            wp_enqueue_style('event-manager-speaker-content', EVENT_MANAGER_PLUGIN_URL . 'assets/css/speaker-content.css', array(), EVENT_MANAGER_VERSION);
         }
     }
 }

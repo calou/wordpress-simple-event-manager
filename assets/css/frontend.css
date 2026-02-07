@@ -11,7 +11,7 @@
     font-size: 1.1em;
     margin-bottom: 2em;
     padding: 1em;
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(0, 0, 0, 0.6);
     border-left: 3px solid currentColor;
 }
 
@@ -82,13 +82,13 @@
 .events-list li {
     padding: 1em;
     margin-bottom: 0.5em;
-    background: rgba(0, 0, 0, 0.03);
+    background: rgba(0, 0, 0, 0.6);
     border-left: 3px solid currentColor;
     transition: all 0.2s;
 }
 
 .events-list li:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.6);
     padding-left: 1.5em;
 }
 
