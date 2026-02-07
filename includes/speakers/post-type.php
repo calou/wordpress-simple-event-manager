@@ -252,3 +252,53 @@ function event_manager_speaker_enqueue_frontend_styles() {
         wp_enqueue_style('event-manager-speaker-content', EVENT_MANAGER_PLUGIN_URL . 'assets/css/speaker-content.css', array('font-awesome'), EVENT_MANAGER_VERSION);
     }
 }
+
+/**
+ * Helper function to get speaker data
+ */
+function event_manager_get_speaker_data($speaker_id) {
+    if (empty($speaker_id)) {
+        return null;
+    }
+
+    $speaker = get_post($speaker_id);
+    if (!$speaker || $speaker->post_type !== 'speaker') {
+        return null;
+    }
+
+    $json_data = get_post_meta($speaker_id, '_speaker_data', true);
+    $speaker_meta = array(
+        'position' => '',
+        'organization' => '',
+        'organization_url' => '',
+        'orcid' => '',
+        'email' => '',
+        'phone' => '',
+        'website' => '',
+        'linkedin' => '',
+    );
+
+    if (!empty($json_data)) {
+        $decoded = json_decode($json_data, true);
+        if (is_array($decoded)) {
+            $speaker_meta = array_merge($speaker_meta, $decoded);
+        }
+    }
+
+    return array(
+        'id' => $speaker->ID,
+        'name' => $speaker->post_title,
+        'bio' => $speaker->post_content,
+        'excerpt' => $speaker->post_excerpt,
+        'position' => $speaker_meta['position'],
+        'organization' => $speaker_meta['organization'],
+        'organization_url' => $speaker_meta['organization_url'],
+        'orcid' => $speaker_meta['orcid'],
+        'email' => $speaker_meta['email'],
+        'phone' => $speaker_meta['phone'],
+        'website' => $speaker_meta['website'],
+        'linkedin' => $speaker_meta['linkedin'],
+        'picture' => get_the_post_thumbnail_url($speaker_id, 'medium'),
+        'picture_large' => get_the_post_thumbnail_url($speaker_id, 'large'),
+    );
+}

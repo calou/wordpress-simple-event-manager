@@ -164,3 +164,32 @@ function event_manager_venue_save_meta($post_id) {
         }
     }
 }
+
+/**
+ * Helper function to get venue data
+ */
+function event_manager_get_venue_data($venue_id) {
+    if (empty($venue_id)) {
+        return null;
+    }
+
+    $venue = get_post($venue_id);
+    if (!$venue || $venue->post_type !== 'venue') {
+        return null;
+    }
+
+    return array(
+        'id' => $venue->ID,
+        'name' => $venue->post_title,
+        'description' => $venue->post_content,
+        'address' => get_post_meta($venue_id, '_venue_address', true),
+        'city' => get_post_meta($venue_id, '_venue_city', true),
+        'state' => get_post_meta($venue_id, '_venue_state', true),
+        'zip' => get_post_meta($venue_id, '_venue_zip', true),
+        'country' => get_post_meta($venue_id, '_venue_country', true),
+        'capacity' => get_post_meta($venue_id, '_venue_capacity', true),
+        'phone' => get_post_meta($venue_id, '_venue_phone', true),
+        'website' => get_post_meta($venue_id, '_venue_website', true),
+        'thumbnail' => get_the_post_thumbnail_url($venue_id, 'medium'),
+    );
+}

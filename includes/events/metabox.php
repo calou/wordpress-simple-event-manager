@@ -421,3 +421,51 @@ function event_manager_metabox_save($post_id) {
 
     update_post_meta($post_id, '_is_event_page', '1');
 }
+
+/**
+ * Helper function to get event data from JSON metadata
+ */
+function event_manager_get_event_data($post_id = null) {
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+
+    $json_data = get_post_meta($post_id, '_event_data', true);
+
+    // Default structure
+    $default_data = array(
+        'start_date' => '',
+        'end_date' => '',
+        'registration_deadline' => '',
+        'registration_url' => '',
+        'venue_id' => '',
+        'parent_event_id' => '',
+        'speaker_ids' => array(),
+        'organizer_ids' => array(),
+    );
+
+    if (!empty($json_data)) {
+        $decoded = json_decode($json_data, true);
+        if (is_array($decoded)) {
+            return array_merge($default_data, $decoded);
+        }
+    }
+
+    return $default_data;
+}
+
+/**
+ * Helper function to format event dates
+ */
+function event_manager_format_date($datetime_string, $format = 'F j, Y g:i A') {
+    if (empty($datetime_string)) {
+        return '';
+    }
+
+    $datetime = DateTime::createFromFormat('Y-m-d\TH:i', $datetime_string);
+    if ($datetime) {
+        return $datetime->format($format);
+    }
+
+    return $datetime_string;
+}
