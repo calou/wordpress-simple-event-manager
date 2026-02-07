@@ -45,12 +45,7 @@ function event_manager_venue_shortcode_render($atts) {
     $venue_events = get_posts(array(
         'post_type' => 'page',
         'posts_per_page' => -1,
-        'meta_query' => array(
-            array(
-                'key' => '_is_event_page',
-                'value' => '1',
-            ),
-        ),
+        'meta_query' => event_manager_event_page_meta_query(),
     ));
 
     $upcoming_events = array();

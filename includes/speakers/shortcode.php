@@ -103,12 +103,7 @@ function event_manager_speaker_block_render($atts) {
         $speaker_events = get_posts(array(
             'post_type' => 'page',
             'posts_per_page' => -1,
-            'meta_query' => array(
-                array(
-                    'key' => '_is_event_page',
-                    'value' => '1',
-                ),
-            ),
+            'meta_query' => event_manager_event_page_meta_query(),
         ));
 
         $upcoming_events = array();

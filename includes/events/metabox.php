@@ -13,6 +13,8 @@ if (!defined('ABSPATH')) {
 add_action('add_meta_boxes', 'event_manager_metabox_add');
 add_action('save_post_page', 'event_manager_metabox_save');
 add_action('admin_enqueue_scripts', 'event_manager_metabox_enqueue_flatpickr');
+add_filter('default_template_types', 'event_manager_event_add_template_type');
+add_filter('get_block_templates', 'event_manager_event_add_block_template', 10, 3);
 
 /**
  * Enqueue Flatpickr datetime picker
@@ -23,17 +25,21 @@ function event_manager_metabox_enqueue_flatpickr($hook) {
     }
 
     global $post;
-    if ($post && $post->post_type === 'page') {
-        // Enqueue Flatpickr from CDN
+    if ($post && $post->post_type === 'page' && event_manager_is_event_page($post->ID)) {
         wp_enqueue_style('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', array(), '4.6.13');
         wp_enqueue_script('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', array(), '4.6.13', true);
     }
 }
 
 /**
- * Add event meta boxes to pages
+ * Add event meta boxes to pages with Event template
  */
 function event_manager_metabox_add() {
+    global $post;
+    if (!$post || !event_manager_is_event_page($post->ID)) {
+        return;
+    }
+
     add_meta_box(
         'event_details',
         __('Event Details', 'event-manager'),
@@ -399,8 +405,6 @@ function event_manager_metabox_save($post_id) {
 
     $json_data = wp_json_encode($event_data);
     update_post_meta($post_id, '_event_data', $json_data);
-
-    update_post_meta($post_id, '_is_event_page', '1');
 }
 
 /**
@@ -448,4 +452,52 @@ function event_manager_format_date($datetime_string, $format = 'F j, Y g:i A') {
     }
 
     return $datetime_string;
+}
+
+/**
+ * Add event page template type
+ */
+function event_manager_event_add_template_type($template_types) {
+    $template_types[EVENT_MANAGER_EVENT_TEMPLATE] = array(
+        'title' => __('Event', 'event-manager'),
+        'description' => __('Template for event pages', 'event-manager'),
+    );
+    return $template_types;
+}
+
+/**
+ * Register block template for event pages
+ */
+function event_manager_event_add_block_template($query_result, $query, $template_type) {
+    $template_file = EVENT_MANAGER_PLUGIN_DIR . 'templates/page-event.html';
+
+    if (!file_exists($template_file)) {
+        return $query_result;
+    }
+
+    $template_content = file_get_contents($template_file);
+
+    $new_template = new WP_Block_Template();
+    $new_template->type = 'wp_template';
+    $new_template->theme = get_stylesheet();
+    $new_template->slug = EVENT_MANAGER_EVENT_TEMPLATE;
+    $new_template->id = get_stylesheet() . '//' . EVENT_MANAGER_EVENT_TEMPLATE;
+    $new_template->title = __('Event', 'event-manager');
+    $new_template->description = __('Template for event pages', 'event-manager');
+    $new_template->source = 'plugin';
+    $new_template->origin = 'plugin';
+    $new_template->content = $template_content;
+    $new_template->status = 'publish';
+    $new_template->has_theme_file = false;
+    $new_template->is_custom = true;
+    $new_template->post_types = array('page');
+
+    if (
+        (isset($query['slug__in']) && in_array(EVENT_MANAGER_EVENT_TEMPLATE, $query['slug__in'])) ||
+        !isset($query['slug__in'])
+    ) {
+        $query_result[] = $new_template;
+    }
+
+    return $query_result;
 }

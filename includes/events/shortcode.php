@@ -14,29 +14,7 @@ add_shortcode('event_metadata', 'event_manager_event_metadata_render');
 add_shortcode('event_speakers', 'event_manager_event_speakers_render');
 add_shortcode('event_organizers', 'event_manager_event_organizers_render');
 add_shortcode('event_programme', 'event_manager_event_programme_render');
-add_filter('the_content', 'event_manager_event_wrap_content');
 add_action('wp_enqueue_scripts', 'event_manager_event_enqueue_frontend_styles');
-
-/**
- * Auto-prepend metadata before content and append speakers/organizers/programme after
- */
-function event_manager_event_wrap_content($content) {
-    if (!is_singular('page') || !in_the_loop() || !is_main_query()) {
-        return $content;
-    }
-
-    $post_id = get_the_ID();
-    if (!get_post_meta($post_id, '_is_event_page', true)) {
-        return $content;
-    }
-
-    $before = event_manager_event_metadata_render(array());
-    $after = event_manager_event_speakers_render(array())
-           . event_manager_event_organizers_render(array())
-           . event_manager_event_programme_render(array());
-
-    return $before . $content . $after;
-}
 
 /**
  * Enqueue frontend styles for event pages
@@ -47,7 +25,7 @@ function event_manager_event_enqueue_frontend_styles() {
     }
 
     $post_id = get_the_ID();
-    if (!$post_id || !get_post_meta($post_id, '_is_event_page', true)) {
+    if (!$post_id || !event_manager_is_event_page($post_id)) {
         return;
     }
 
@@ -93,12 +71,7 @@ function event_manager_event_get_children($post_id) {
         'post_type' => 'page',
         'post_parent' => $post_id,
         'posts_per_page' => -1,
-        'meta_query' => array(
-            array(
-                'key' => '_is_event_page',
-                'value' => '1',
-            ),
-        ),
+        'meta_query' => event_manager_event_page_meta_query(),
     ));
 
     $child_events = array();
