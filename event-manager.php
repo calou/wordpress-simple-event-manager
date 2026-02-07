@@ -23,6 +23,7 @@ define('EVENT_MANAGER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Include required files
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-speaker.php';
+require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-speaker-block.php';
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-venue.php';
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/class-event-metabox.php';
 
@@ -37,45 +38,12 @@ class Event_Manager {
     public function __construct() {
         // Initialize components
         new Event_Manager_Speaker();
+        new Event_Manager_Speaker_Block();
         new Event_Manager_Venue();
         new Event_Manager_Metabox();
 
-        // Add custom page templates
-        add_filter('theme_page_templates', array($this, 'add_event_template'));
-        add_filter('template_include', array($this, 'load_event_template'));
-
         // Enqueue admin scripts and styles
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-    }
-
-    /**
-     * Add custom page template to the dropdown
-     */
-    public function add_event_template($templates) {
-        $templates['event-template.php'] = __('Event Template', 'event-manager');
-        return $templates;
-    }
-
-    /**
-     * Load custom page template
-     */
-    public function load_event_template($template) {
-        global $post;
-
-        if (!$post) {
-            return $template;
-        }
-
-        $page_template = get_post_meta($post->ID, '_wp_page_template', true);
-
-        if ($page_template == 'event-template.php') {
-            $plugin_template = EVENT_MANAGER_PLUGIN_DIR . 'templates/event-template.php';
-            if (file_exists($plugin_template)) {
-                return $plugin_template;
-            }
-        }
-
-        return $template;
     }
 
     /**

@@ -22,7 +22,8 @@ class Event_Manager_Speaker {
         add_action('init', array($this, 'register_speaker_post_type'));
         add_action('add_meta_boxes', array($this, 'add_speaker_meta_boxes'));
         add_action('save_post_speaker', array($this, 'save_speaker_meta'));
-        add_filter('the_content', array($this, 'append_speaker_content'));
+        add_filter('default_template_types', array($this, 'add_speaker_template_type'));
+        add_filter('get_block_templates', array($this, 'add_speaker_block_template'), 10, 3);
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
     }
 
@@ -54,6 +55,16 @@ class Event_Manager_Speaker {
             'menu_icon' => 'dashicons-microphone',
             'supports' => array('title', 'editor', 'thumbnail', 'excerpt'),
             'rewrite' => array('slug' => 'speaker'),
+            'template' => array(
+                array('core/html', array(
+                    'content' => '[speaker_metadata]'
+                )),
+                array('core/separator'),
+                array('core/paragraph', array(
+                    'placeholder' => 'Add speaker biography and additional information here...'
+                )),
+            ),
+            'template_lock' => false,
         );
 
         register_post_type('speaker', $args);
@@ -197,21 +208,53 @@ class Event_Manager_Speaker {
     }
 
     /**
-     * Append speaker metadata to content
+     * Add speaker template type
      */
-    public function append_speaker_content($content) {
-        // Only on single speaker pages and in the main query
-        if (!is_singular('speaker') || !in_the_loop() || !is_main_query()) {
-            return $content;
+    public function add_speaker_template_type($template_types) {
+        $template_types['single-speaker'] = array(
+            'title' => __('Single Speaker', 'event-manager'),
+            'description' => __('Displays a single speaker post', 'event-manager'),
+        );
+        return $template_types;
+    }
+
+    /**
+     * Register block template for speaker post type
+     */
+    public function add_speaker_block_template($query_result, $query, $template_type) {
+        $template_file = EVENT_MANAGER_PLUGIN_DIR . 'templates/single-speaker.html';
+
+        if (!file_exists($template_file)) {
+            return $query_result;
         }
 
-        $speaker_data = event_manager_get_speaker_data(get_the_ID());
+        $template_content = file_get_contents($template_file);
 
-        ob_start();
-        include EVENT_MANAGER_PLUGIN_DIR . 'templates/content-speaker.php';
-        $speaker_content = ob_get_clean();
+        $new_template = new WP_Block_Template();
+        $new_template->type = 'wp_template';
+        $new_template->theme = get_stylesheet();
+        $new_template->slug = 'single-speaker';
+        $new_template->id = get_stylesheet() . '//single-speaker';
+        $new_template->title = __('Single Speaker', 'event-manager');
+        $new_template->description = __('Template for displaying single speaker posts', 'event-manager');
+        $new_template->source = 'plugin';
+        $new_template->origin = 'plugin';
+        $new_template->content = $template_content;
+        $new_template->status = 'publish';
+        $new_template->has_theme_file = false;
+        $new_template->is_custom = false;
+        $new_template->post_types = array('speaker');
 
-        return $content . $speaker_content;
+        // Add to query result if it matches the criteria
+        if (
+            (isset($query['slug__in']) && in_array('single-speaker', $query['slug__in'])) ||
+            (isset($query['post_type']) && $query['post_type'] === 'speaker') ||
+            !isset($query['slug__in'])
+        ) {
+            $query_result[] = $new_template;
+        }
+
+        return $query_result;
     }
 
     /**
@@ -219,7 +262,8 @@ class Event_Manager_Speaker {
      */
     public function enqueue_frontend_styles() {
         if (is_singular('speaker')) {
-            wp_enqueue_style('event-manager-speaker-content', EVENT_MANAGER_PLUGIN_URL . 'assets/css/speaker-content.css', array(), EVENT_MANAGER_VERSION);
+            wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
+            wp_enqueue_style('event-manager-speaker-content', EVENT_MANAGER_PLUGIN_URL . 'assets/css/speaker-content.css', array('font-awesome'), EVENT_MANAGER_VERSION);
         }
     }
 }
