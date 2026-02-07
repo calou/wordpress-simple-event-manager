@@ -40,9 +40,8 @@ function event_manager_speaker_register_post_type() {
         'has_archive' => true,
         'publicly_queryable' => true,
         'show_ui' => true,
-        'show_in_menu' => true,
+        'show_in_menu' => 'event-manager',
         'show_in_rest' => true,
-        'menu_icon' => 'dashicons-microphone',
         'supports' => array('title', 'editor', 'thumbnail', 'excerpt'),
         'rewrite' => array('slug' => 'speaker'),
         'template' => array(
