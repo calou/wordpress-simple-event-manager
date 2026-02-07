@@ -2,10 +2,7 @@
 
 /* Profile Container */
 .venue-profile {
-    /*
-    max-width: 1000px;
-    margin: 2em 0;
-    */
+
 }
 
 /* Header: photo + name/address/meta */
@@ -110,6 +107,13 @@
     font-weight: 600;
 }
 
+/* Sidebar */
+.venue-sidebar h3 {
+    margin: 0 0 1em 0;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
 /* Contacts */
 .venue-contacts {
     display: flex;
@@ -134,7 +138,8 @@
 
 .venue-contact-info {
     display: flex;
-    gap: 1.5em;
+    flex-direction: column;
+    gap: 0.4em;
     font-size: 0.9em;
 }
 
