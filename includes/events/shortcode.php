@@ -15,19 +15,28 @@ add_shortcode('event_sidebar', 'event_manager_event_sidebar_render');
 add_shortcode('event_speakers', 'event_manager_event_speakers_render');
 add_shortcode('event_organizers', 'event_manager_event_organizers_render');
 add_shortcode('event_programme', 'event_manager_event_programme_render');
+add_shortcode('events_upcoming', 'event_manager_events_upcoming_render');
+add_shortcode('events_past', 'event_manager_events_past_render');
+add_shortcode('events_calendar', 'event_manager_events_calendar_render');
 add_action('wp_enqueue_scripts', 'event_manager_event_enqueue_frontend_styles');
 add_action('template_redirect', 'event_manager_event_ics_download');
 
 /**
- * Enqueue frontend styles for event pages
+ * Enqueue frontend styles for event pages and pages containing event list shortcodes
  */
 function event_manager_event_enqueue_frontend_styles() {
-    if (!is_singular('page')) {
+    global $post;
+
+    if (!is_singular('page') || !$post) {
         return;
     }
 
-    $post_id = get_the_ID();
-    if (!$post_id || !event_manager_is_event_page($post_id)) {
+    $is_event_page = event_manager_is_event_page($post->ID);
+    $has_list_shortcode = has_shortcode($post->post_content, 'events_upcoming')
+        || has_shortcode($post->post_content, 'events_past')
+        || has_shortcode($post->post_content, 'events_calendar');
+
+    if (!$is_event_page && !$has_list_shortcode) {
         return;
     }
 
@@ -63,6 +72,36 @@ function event_manager_event_format_date_range($start_date, $end_date) {
     // Different days
     return date_i18n($date_format . ' ' . $time_format, $start_ts) . ' – '
         . date_i18n($date_format . ' ' . $time_format, $end_ts);
+}
+
+/**
+ * Format a date for event list display:
+ * - "dd/mm"      when the date falls in the current year
+ * - "dd/mm/yyyy" otherwise
+ */
+function event_manager_events_list_format_date($ts) {
+    $current_year = (int) current_time('Y');
+    $format = (int) date('Y', $ts) === $current_year ? 'd/m' : 'd/m/Y';
+    return date_i18n($format, $ts);
+}
+
+/**
+ * Format a date range for event list display using event_manager_events_list_format_date().
+ */
+function event_manager_events_list_format_date_range($start_date, $end_date) {
+    if (empty($start_date)) {
+        return '';
+    }
+
+    $start_ts = strtotime($start_date);
+
+    if (empty($end_date) || date('Y-m-d', $start_ts) === date('Y-m-d', strtotime($end_date))) {
+        return event_manager_events_list_format_date($start_ts);
+    }
+
+    return event_manager_events_list_format_date($start_ts)
+        . ' – '
+        . event_manager_events_list_format_date(strtotime($end_date));
 }
 
 /**
@@ -459,6 +498,243 @@ function event_manager_event_organizers_render($atts) {
     </div>
     <?php
     return ob_get_clean();
+}
+
+/**
+ * Shared helper: fetch, filter, sort and paginate events for the list shortcodes.
+ *
+ * @param string $mode  'upcoming' or 'past'
+ * @param array  $atts  Raw shortcode attributes
+ * @return string       HTML output
+ */
+function event_manager_events_list_render($mode, $atts) {
+    $atts = shortcode_atts(array(
+        'per_page' => 10,
+        'category' => '',
+    ), $atts, 'events_' . $mode);
+
+    $per_page = max(1, intval($atts['per_page']));
+    $now      = current_time('timestamp');
+
+    $query_args = array(
+        'post_type'      => 'page',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'post_parent'    => 0,
+        'meta_query'     => event_manager_event_page_meta_query(),
+    );
+
+    if (!empty($atts['category'])) {
+        $cat = sanitize_text_field($atts['category']);
+        if (is_numeric($cat)) {
+            $query_args['cat'] = intval($cat);
+        } else {
+            $query_args['category_name'] = $cat;
+        }
+    }
+
+    $all_posts = get_posts($query_args);
+
+    $filtered = array();
+    foreach ($all_posts as $post) {
+        $data = event_manager_get_event_data($post->ID);
+        if (empty($data['start_date'])) {
+            continue;
+        }
+        $start_ts = strtotime($data['start_date']);
+        $end_ts   = !empty($data['end_date']) ? strtotime($data['end_date']) : $start_ts;
+
+        if ($mode === 'upcoming' && $end_ts >= $now) {
+            $filtered[] = array('post' => $post, 'data' => $data, 'start_ts' => $start_ts);
+        } elseif ($mode === 'past' && $end_ts < $now) {
+            $filtered[] = array('post' => $post, 'data' => $data, 'start_ts' => $start_ts);
+        }
+    }
+
+    if ($mode === 'upcoming') {
+        usort($filtered, fn($a, $b) => $a['start_ts'] - $b['start_ts']);
+    } else {
+        usort($filtered, fn($a, $b) => $b['start_ts'] - $a['start_ts']);
+    }
+
+    $total       = count($filtered);
+    $total_pages = max(1, (int) ceil($total / $per_page));
+    $paged_key   = 'em_page_' . $mode;
+    $current_page = isset($_GET[$paged_key]) ? min($total_pages, max(1, intval($_GET[$paged_key]))) : 1;
+    $page_items  = array_slice($filtered, ($current_page - 1) * $per_page, $per_page);
+
+    ob_start();
+
+    if (empty($filtered)) {
+        echo '<p>' . esc_html($mode === 'upcoming'
+            ? __('No upcoming events.', 'event-manager')
+            : __('No past events.', 'event-manager')) . '</p>';
+        return ob_get_clean();
+    }
+    ?>
+    <div class="event-list">
+        <?php foreach ($page_items as $item) :
+            $post       = $item['post'];
+            $data       = $item['data'];
+            $date_str   = event_manager_events_list_format_date_range($data['start_date'], $data['end_date']);
+            $venue_name = '';
+            if (!empty($data['venue_id'])) {
+                $venue_post = get_post($data['venue_id']);
+                if ($venue_post) {
+                    $venue_name = $venue_post->post_title;
+                }
+            }
+            $terms = get_the_terms($post->ID, 'category');
+            ?>
+            <div class="event-list-item">
+                <div class="event-list-item-date"><?php echo esc_html($date_str ?: '—'); ?></div>
+                <div class="event-list-item-body">
+                    <a href="<?php echo esc_url(get_permalink($post->ID)); ?>" class="event-list-item-title">
+                        <?php echo esc_html($post->post_title ?: __('(no title)', 'event-manager')); ?>
+                    </a>
+                    <?php if ($venue_name) : ?>
+                        <div class="event-list-item-venue">
+                            <i class="fas fa-location-dot"></i>
+                            <?php echo esc_html($venue_name); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($terms && !is_wp_error($terms)) : ?>
+                        <div class="event-list-item-cats">
+                            <?php foreach ($terms as $term) : ?>
+                                <span class="event-list-item-cat"><?php echo esc_html($term->name); ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <?php if ($total_pages > 1) :
+        $base_url = remove_query_arg($paged_key);
+        ?>
+        <nav class="event-list-pagination">
+            <?php if ($current_page > 1) : ?>
+                <a href="<?php echo esc_url(add_query_arg($paged_key, $current_page - 1, $base_url)); ?>" class="event-list-pagination-prev">
+                    <i class="fas fa-chevron-left"></i> <?php _e('Previous', 'event-manager'); ?>
+                </a>
+            <?php else : ?>
+                <span></span>
+            <?php endif; ?>
+            <span class="event-list-pagination-info">
+                <?php printf(__('Page %d of %d', 'event-manager'), $current_page, $total_pages); ?>
+            </span>
+            <?php if ($current_page < $total_pages) : ?>
+                <a href="<?php echo esc_url(add_query_arg($paged_key, $current_page + 1, $base_url)); ?>" class="event-list-pagination-next">
+                    <?php _e('Next', 'event-manager'); ?> <i class="fas fa-chevron-right"></i>
+                </a>
+            <?php else : ?>
+                <span></span>
+            <?php endif; ?>
+        </nav>
+    <?php endif;
+
+    return ob_get_clean();
+}
+
+/**
+ * [events_upcoming per_page="10" category="slug"]
+ * Displays a paginated list of upcoming events, sorted by start date ascending.
+ */
+function event_manager_events_upcoming_render($atts) {
+    return event_manager_events_list_render('upcoming', $atts);
+}
+
+/**
+ * [events_past per_page="10" category="slug"]
+ * Displays a paginated list of past events, sorted by start date descending.
+ */
+function event_manager_events_past_render($atts) {
+    return event_manager_events_list_render('past', $atts);
+}
+
+/**
+ * [events_calendar category="slug"]
+ * Displays a FullCalendar month view of all parent events.
+ */
+function event_manager_events_calendar_render($atts) {
+    static $instance = 0;
+    $instance++;
+
+    $atts = shortcode_atts(array(
+        'category' => '',
+    ), $atts, 'events_calendar');
+
+    $query_args = array(
+        'post_type'      => 'page',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'post_parent'    => 0,
+        'meta_query'     => event_manager_event_page_meta_query(),
+    );
+
+    if (!empty($atts['category'])) {
+        $cat = sanitize_text_field($atts['category']);
+        if (is_numeric($cat)) {
+            $query_args['cat'] = intval($cat);
+        } else {
+            $query_args['category_name'] = $cat;
+        }
+    }
+
+    $posts = get_posts($query_args);
+
+    $fc_events = array();
+    foreach ($posts as $post) {
+        $data = event_manager_get_event_data($post->ID);
+        if (empty($data['start_date'])) {
+            continue;
+        }
+        $fc_event = array(
+            'title' => $post->post_title,
+            'start' => $data['start_date'],
+            'url'   => get_permalink($post->ID),
+        );
+        if (!empty($data['end_date'])) {
+            $fc_event['end'] = $data['end_date'];
+        }
+        if (!empty($data['color'])) {
+            $fc_event['backgroundColor'] = $data['color'];
+            $fc_event['borderColor']     = $data['color'];
+        }
+        $fc_events[] = $fc_event;
+    }
+
+    $calendar_id = 'events-calendar-' . $instance;
+
+    wp_enqueue_script(
+        'fullcalendar',
+        'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js',
+        array(),
+        '6.1.15',
+        true
+    );
+
+    $init_script = sprintf(
+        '(function(){
+    var el = document.getElementById(%s);
+    if (!el) return;
+    new FullCalendar.Calendar(el, {
+        initialView: "dayGridMonth",
+        headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,listMonth" },
+        events: %s,
+        eventClick: function(info) {
+            if (info.event.url) { info.jsEvent.preventDefault(); window.location.href = info.event.url; }
+        }
+    }).render();
+})();',
+        wp_json_encode($calendar_id),
+        wp_json_encode($fc_events)
+    );
+
+    wp_add_inline_script('fullcalendar', $init_script);
+
+    return '<div id="' . esc_attr($calendar_id) . '" class="events-calendar"></div>';
 }
 
 /**

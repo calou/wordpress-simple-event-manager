@@ -11,6 +11,37 @@ if (!defined('ABSPATH')) {
 }
 
 add_action('admin_menu', 'event_manager_admin_menu', 9);
+add_action('admin_post_event_manager_create_event', 'event_manager_handle_create_event');
+
+/**
+ * Handle creating a new event page and redirect to editor
+ */
+function event_manager_handle_create_event() {
+    check_admin_referer('event_manager_create_event');
+
+    if (!current_user_can('edit_pages')) {
+        wp_die(__('You do not have permission to create events.', 'event-manager'));
+    }
+
+    $parent_id = isset($_GET['parent_id']) ? absint($_GET['parent_id']) : 0;
+
+    $page_id = wp_insert_post(array(
+        'post_type'   => 'page',
+        'post_status' => 'draft',
+        'post_title'  => '',
+        'post_parent' => $parent_id,
+        'meta_input'  => array(
+            '_wp_page_template' => EVENT_MANAGER_EVENT_TEMPLATE,
+        ),
+    ));
+
+    if (is_wp_error($page_id)) {
+        wp_die($page_id->get_error_message());
+    }
+
+    wp_redirect(get_edit_post_link($page_id, 'raw'));
+    exit;
+}
 
 /**
  * Register the Event Manager admin menu
@@ -52,6 +83,9 @@ function event_manager_events_list_page() {
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline"><?php _e('Events', 'event-manager'); ?></h1>
+        <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=event_manager_create_event'), 'event_manager_create_event')); ?>" class="page-title-action">
+            <?php _e('Add New Event', 'event-manager'); ?>
+        </a>
         <hr class="wp-header-end">
 
         <?php if (empty($events)) : ?>
@@ -63,6 +97,7 @@ function event_manager_events_list_page() {
                         <th><?php _e('Title', 'event-manager'); ?></th>
                         <th><?php _e('Date', 'event-manager'); ?></th>
                         <th><?php _e('Venue', 'event-manager'); ?></th>
+                        <th><?php _e('Categories', 'event-manager'); ?></th>
                         <th><?php _e('Status', 'event-manager'); ?></th>
                     </tr>
                 </thead>
@@ -91,12 +126,23 @@ function event_manager_events_list_page() {
                                         <a href="<?php echo esc_url(get_edit_post_link($event->ID)); ?>"><?php _e('Edit', 'event-manager'); ?></a> |
                                     </span>
                                     <span class="view">
-                                        <a href="<?php echo esc_url(get_permalink($event->ID)); ?>"><?php _e('View', 'event-manager'); ?></a>
+                                        <a href="<?php echo esc_url(get_permalink($event->ID)); ?>"><?php _e('View', 'event-manager'); ?></a> |
+                                    </span>
+                                    <span class="add-child">
+                                        <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=event_manager_create_event&parent_id=' . $event->ID), 'event_manager_create_event')); ?>"><?php _e('Add Child Event', 'event-manager'); ?></a>
                                     </span>
                                 </div>
                             </td>
                             <td><?php echo esc_html($date_range ?: '—'); ?></td>
                             <td><?php echo esc_html($venue_name ?: '—'); ?></td>
+                            <td><?php
+                                $terms = get_the_terms($event->ID, 'category');
+                                if ($terms && !is_wp_error($terms)) {
+                                    echo esc_html(implode(', ', wp_list_pluck($terms, 'name')));
+                                } else {
+                                    echo '—';
+                                }
+                            ?></td>
                             <td><?php echo esc_html($status_obj ? $status_obj->label : $event->post_status); ?></td>
                         </tr>
                     <?php endforeach; ?>

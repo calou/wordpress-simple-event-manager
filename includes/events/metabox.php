@@ -63,6 +63,7 @@ function event_manager_metabox_get_event_data($post_id) {
         'registration_deadline' => '',
         'registration_url' => '',
         'venue_id' => '',
+        'color' => '',
         'speaker_ids' => array(),
         'organizer_ids' => array(),
     );
@@ -235,6 +236,12 @@ function event_manager_metabox_render($post) {
         </p>
 
         <p>
+            <label for="event_color"><strong><?php _e('Calendar Color:', 'event-manager'); ?></strong></label>
+            <input type="color" id="event_color" name="event_color" value="<?php echo esc_attr($event_data['color'] ?: '#1a73e8'); ?>">
+            <span class="description"><?php _e('Colour used to display this event in the calendar', 'event-manager'); ?></span>
+        </p>
+
+        <p>
             <label for="speaker-search"><strong><?php _e('Speakers:', 'event-manager'); ?></strong></label>
             <div class="event-autocomplete-container">
                 <input type="text" id="speaker-search" class="event-autocomplete-input" placeholder="<?php _e('Search speakers...', 'event-manager'); ?>" autocomplete="off">
@@ -395,6 +402,7 @@ function event_manager_metabox_save($post_id) {
         'registration_deadline' => isset($_POST['event_registration_deadline_iso']) ? sanitize_text_field($_POST['event_registration_deadline_iso']) : '',
         'registration_url' => isset($_POST['event_registration_url']) ? esc_url_raw($_POST['event_registration_url']) : '',
         'venue_id' => isset($_POST['event_venue']) ? absint($_POST['event_venue']) : '',
+        'color' => isset($_POST['event_color']) ? sanitize_hex_color($_POST['event_color']) : '',
         'speaker_ids' => isset($_POST['event_speakers']) && is_array($_POST['event_speakers'])
             ? array_map('absint', $_POST['event_speakers'])
             : array(),
@@ -424,6 +432,7 @@ function event_manager_get_event_data($post_id = null) {
         'registration_deadline' => '',
         'registration_url' => '',
         'venue_id' => '',
+        'color' => '',
         'speaker_ids' => array(),
         'organizer_ids' => array(),
     );

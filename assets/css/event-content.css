@@ -354,6 +354,109 @@
     color: #1a73e8;
 }
 
+/* Calendar shortcode */
+.events-calendar {
+    max-width: 100%;
+    font-size: 0.95em;
+}
+
+/* Event list (upcoming / past shortcodes) */
+.event-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.event-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5em;
+    padding: 1.2em 0;
+    border-bottom: 1px solid #e8eaed;
+}
+
+.event-list-item:first-child {
+    border-top: 1px solid #e8eaed;
+}
+
+.event-list-item-date {
+    flex-shrink: 0;
+    min-width: 160px;
+    font-size: 0.85em;
+    color: #5f6368;
+    padding-top: 0.15em;
+}
+
+.event-list-item-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.event-list-item-title {
+    display: block;
+    font-weight: 600;
+    font-size: 1em;
+    color: #202124;
+    text-decoration: none;
+    margin-bottom: 0.25em;
+    transition: color 0.15s;
+}
+
+.event-list-item-title:hover {
+    color: #1a73e8;
+}
+
+.event-list-item-venue {
+    font-size: 0.85em;
+    color: #5f6368;
+    margin-bottom: 0.3em;
+}
+
+.event-list-item-venue i {
+    margin-right: 0.3em;
+    color: #1a73e8;
+}
+
+.event-list-item-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+    margin-top: 0.3em;
+}
+
+.event-list-item-cat {
+    font-size: 0.75em;
+    background: #e8f0fe;
+    color: #1a73e8;
+    border-radius: 4px;
+    padding: 0.2em 0.5em;
+    font-weight: 500;
+}
+
+.event-list-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.5em;
+    font-size: 0.9em;
+}
+
+.event-list-pagination a {
+    color: #1a73e8;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    transition: color 0.15s;
+}
+
+.event-list-pagination a:hover {
+    color: #1557b0;
+}
+
+.event-list-pagination-info {
+    color: #5f6368;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .event-sidebar {
@@ -370,6 +473,15 @@
     }
 
     .event-programme-date {
+        min-width: 0;
+    }
+
+    .event-list-item {
+        flex-direction: column;
+        gap: 0.3em;
+    }
+
+    .event-list-item-date {
         min-width: 0;
     }
 }

@@ -52,6 +52,13 @@ function event_manager_event_page_meta_query() {
     );
 }
 
+/**
+ * Enable post categories on pages so events can be categorised
+ */
+add_action('init', function () {
+    register_taxonomy_for_object_type('category', 'page');
+});
+
 // Include required files
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/speakers/post-type.php';
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/speakers/shortcode.php';
