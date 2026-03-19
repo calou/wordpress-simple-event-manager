@@ -53,6 +53,16 @@ function event_manager_event_page_meta_query() {
 }
 
 /**
+ * Register the Event template slug so the block editor and REST API accept it.
+ * Without this, saving a page with this template via the editor fails with
+ * "Invalid parameter(s): template".
+ */
+add_filter('theme_page_templates', function ($templates) {
+    $templates[EVENT_MANAGER_EVENT_TEMPLATE] = __('Event', 'event-manager');
+    return $templates;
+});
+
+/**
  * Enable post categories on pages so events can be categorised
  */
 add_action('init', function () {
