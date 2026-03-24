@@ -53,94 +53,29 @@ function event_manager_event_page_meta_query() {
 }
 
 /**
- * Register the Event template slug so the block editor and REST API accept it.
- * - theme_page_templates: keeps classic-theme and REST API validation happy.
- * - register_block_template (WP 6.7+) / get_block_templates filter (older WP):
- *   makes the block template available so block-theme pages actually render with
- *   page-event.html instead of falling back to the default page template.
+ * Register the Event template slug with WordPress so:
+ * - The "Page Attributes" template dropdown shows "Event" as an option.
+ * - The REST API accepts the slug when saving via the block editor.
  */
 add_filter('theme_page_templates', function ($templates) {
     $templates[EVENT_MANAGER_EVENT_TEMPLATE] = __('Event', 'event-manager');
     return $templates;
 });
 
-add_action('init', 'event_manager_register_block_template');
-
-function event_manager_register_block_template() {
-    $template_file = EVENT_MANAGER_PLUGIN_DIR . 'templates/page-event.html';
-    if (!file_exists($template_file)) {
-        return;
-    }
-    $content = file_get_contents($template_file);
-
-    if (function_exists('register_block_template')) {
-        // WP 6.7+: official plugin template registration.
-        // The plugin directory name is used as the namespace.
-        register_block_template(
-            basename(EVENT_MANAGER_PLUGIN_DIR) . '//' . EVENT_MANAGER_EVENT_TEMPLATE,
-            array(
-                'title'      => __('Event', 'event-manager'),
-                'content'    => $content,
-                'post_types' => array('page'),
-            )
-        );
-        return;
-    }
-
-    // WP < 6.7 fallback: inject the template object via filters.
-    add_filter('get_block_templates',   'event_manager_inject_block_template', 10, 3);
-    add_filter('get_block_file_template', 'event_manager_get_block_file_template', 10, 3);
-}
-
-/** Build a WP_Block_Template object for the Event template. */
-function event_manager_build_block_template_object() {
-    $template_file = EVENT_MANAGER_PLUGIN_DIR . 'templates/page-event.html';
-
-    $t = new WP_Block_Template();
-    $t->type           = 'wp_template';
-    $t->theme          = get_stylesheet();
-    $t->slug           = EVENT_MANAGER_EVENT_TEMPLATE;
-    $t->id             = get_stylesheet() . '//' . EVENT_MANAGER_EVENT_TEMPLATE;
-    $t->title          = __('Event', 'event-manager');
-    $t->description    = '';
-    $t->status         = 'publish';
-    $t->has_theme_file = false;
-    $t->is_custom      = false;
-    $t->source         = 'plugin';
-    $t->origin         = 'plugin';
-    $t->content        = file_get_contents($template_file);
-    $t->post_types     = array('page');
-    return $t;
-}
-
-function event_manager_inject_block_template($query_result, $query, $template_type) {
-    if ('wp_template' !== $template_type) {
-        return $query_result;
-    }
-    // Skip if the query is for specific slugs and ours isn't requested.
-    if (!empty($query['slug__in']) && !in_array(EVENT_MANAGER_EVENT_TEMPLATE, $query['slug__in'], true)) {
-        return $query_result;
-    }
-    // Skip if already present (e.g. saved as a customisation in the DB).
-    foreach ($query_result as $t) {
-        if ($t->slug === EVENT_MANAGER_EVENT_TEMPLATE) {
-            return $query_result;
-        }
-    }
-    $query_result[] = event_manager_build_block_template_object();
-    return $query_result;
-}
-
-function event_manager_get_block_file_template($template, $id, $template_type) {
-    if ('wp_template' !== $template_type || !is_null($template)) {
+/**
+ * Serve the plugin's PHP event template when a page uses the Event template.
+ */
+add_filter('template_include', function ($template) {
+    if (!is_page() || !event_manager_is_event_page(get_the_ID())) {
         return $template;
     }
-    $expected_id = get_stylesheet() . '//' . EVENT_MANAGER_EVENT_TEMPLATE;
-    if ($id !== $expected_id) {
-        return $template;
+    // Allow the active theme to override the template.
+    $theme_override = locate_template(EVENT_MANAGER_EVENT_TEMPLATE . '.php');
+    if ($theme_override) {
+        return $theme_override;
     }
-    return event_manager_build_block_template_object();
-}
+    return EVENT_MANAGER_PLUGIN_DIR . 'templates/event-manager-event.php';
+});
 
 /**
  * Enable post categories on pages so events can be categorised
