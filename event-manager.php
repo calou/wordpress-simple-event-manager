@@ -63,18 +63,30 @@ add_filter('theme_page_templates', function ($templates) {
 });
 
 /**
- * Serve the plugin's PHP event template when a page uses the Event template.
+ * Inject event content into the_content so the theme's own template is used.
  */
-add_filter('template_include', function ($template) {
-    if (!is_page() || !event_manager_is_event_page(get_the_ID())) {
-        return $template;
+add_filter('the_content', function ($content) {
+    if (!is_singular('page') || !in_the_loop() || !is_main_query()) {
+        return $content;
     }
-    // Allow the active theme to override the template.
-    $theme_override = locate_template(EVENT_MANAGER_EVENT_TEMPLATE . '.php');
-    if ($theme_override) {
-        return $theme_override;
+    if (!event_manager_is_event_page(get_the_ID())) {
+        return $content;
     }
-    return EVENT_MANAGER_PLUGIN_DIR . 'templates/page-event.php';
+
+    ob_start();
+    echo do_shortcode('[event_metadata]');
+    echo '<div class="event-page-columns">';
+    echo '<div class="event-page-main">';
+    echo $content;
+    echo do_shortcode('[event_speakers]');
+    echo do_shortcode('[event_programme]');
+    echo do_shortcode('[event_organizers]');
+    echo '</div>';
+    echo '<div class="event-page-sidebar">';
+    echo do_shortcode('[event_sidebar]');
+    echo '</div>';
+    echo '</div>';
+    return ob_get_clean();
 });
 
 /**

@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 add_action('init', 'event_manager_speaker_register_post_type');
 add_action('add_meta_boxes', 'event_manager_speaker_add_meta_boxes');
 add_action('save_post_speaker', 'event_manager_speaker_save_meta');
-add_filter('template_include', 'event_manager_speaker_template_include');
+add_filter('the_content', 'event_manager_speaker_content_filter');
 add_action('wp_enqueue_scripts', 'event_manager_speaker_enqueue_frontend_styles');
 
 /**
@@ -192,17 +192,13 @@ function event_manager_speaker_save_meta($post_id) {
 }
 
 /**
- * Serve the plugin's PHP speaker template, with theme override support.
+ * Inject speaker profile into the_content so the theme's own template is used.
  */
-function event_manager_speaker_template_include($template) {
-    if (!is_singular('speaker')) {
-        return $template;
+function event_manager_speaker_content_filter($content) {
+    if (!is_singular('speaker') || !in_the_loop() || !is_main_query()) {
+        return $content;
     }
-    $theme_override = locate_template('single-speaker.php');
-    if ($theme_override) {
-        return $theme_override;
-    }
-    return EVENT_MANAGER_PLUGIN_DIR . 'templates/single-speaker.php';
+    return do_shortcode('[speaker_metadata]') . $content;
 }
 
 /**

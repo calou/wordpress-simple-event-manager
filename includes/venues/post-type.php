@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 add_action('init', 'event_manager_venue_register_post_type');
 add_action('add_meta_boxes_venue', 'event_manager_venue_add_meta_boxes');
 add_action('save_post_venue', 'event_manager_venue_save_meta');
-add_filter('template_include', 'event_manager_venue_template_include');
+add_filter('the_content', 'event_manager_venue_content_filter');
 add_action('wp_enqueue_scripts', 'event_manager_venue_enqueue_frontend_styles');
 
 /**
@@ -302,17 +302,21 @@ function event_manager_get_venue_data($venue_id) {
 }
 
 /**
- * Serve the plugin's PHP venue template, with theme override support.
+ * Inject venue info into the_content so the theme's own template is used.
  */
-function event_manager_venue_template_include($template) {
-    if (!is_singular('venue')) {
-        return $template;
+function event_manager_venue_content_filter($content) {
+    if (!is_singular('venue') || !in_the_loop() || !is_main_query()) {
+        return $content;
     }
-    $theme_override = locate_template('single-venue.php');
-    if ($theme_override) {
-        return $theme_override;
-    }
-    return EVENT_MANAGER_PLUGIN_DIR . 'templates/single-venue.php';
+    return '<div class="venue-page-columns">'
+        . '<div class="venue-page-main">'
+        . do_shortcode('[venue_metadata]')
+        . $content
+        . '</div>'
+        . '<div class="venue-page-sidebar">'
+        . do_shortcode('[venue_contacts]')
+        . '</div>'
+        . '</div>';
 }
 
 /**
