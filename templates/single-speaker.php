@@ -8,7 +8,7 @@
 get_header();
 ?>
 
-<div class="page-body speaker-page">
+<div class="container speaker-page">
     <?php while (have_posts()) : the_post(); ?>
         <?php echo do_shortcode('[speaker_metadata]'); ?>
         <div class="speaker-bio">
