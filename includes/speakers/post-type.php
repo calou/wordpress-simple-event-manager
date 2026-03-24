@@ -13,8 +13,7 @@ if (!defined('ABSPATH')) {
 add_action('init', 'event_manager_speaker_register_post_type');
 add_action('add_meta_boxes', 'event_manager_speaker_add_meta_boxes');
 add_action('save_post_speaker', 'event_manager_speaker_save_meta');
-add_filter('default_template_types', 'event_manager_speaker_add_template_type');
-add_filter('get_block_templates', 'event_manager_speaker_add_block_template', 10, 3);
+add_filter('template_include', 'event_manager_speaker_template_include');
 add_action('wp_enqueue_scripts', 'event_manager_speaker_enqueue_frontend_styles');
 
 /**
@@ -193,53 +192,17 @@ function event_manager_speaker_save_meta($post_id) {
 }
 
 /**
- * Add speaker template type
+ * Serve the plugin's PHP speaker template, with theme override support.
  */
-function event_manager_speaker_add_template_type($template_types) {
-    $template_types['single-speaker'] = array(
-        'title' => __('Single Speaker', 'event-manager'),
-        'description' => __('Displays a single speaker post', 'event-manager'),
-    );
-    return $template_types;
-}
-
-/**
- * Register block template for speaker post type
- */
-function event_manager_speaker_add_block_template($query_result, $query, $template_type) {
-    $template_file = EVENT_MANAGER_PLUGIN_DIR . 'templates/single-speaker.html';
-
-    if (!file_exists($template_file)) {
-        return $query_result;
+function event_manager_speaker_template_include($template) {
+    if (!is_singular('speaker')) {
+        return $template;
     }
-
-    $template_content = file_get_contents($template_file);
-
-    $new_template = new WP_Block_Template();
-    $new_template->type = 'wp_template';
-    $new_template->theme = get_stylesheet();
-    $new_template->slug = 'single-speaker';
-    $new_template->id = get_stylesheet() . '//single-speaker';
-    $new_template->title = __('Single Speaker', 'event-manager');
-    $new_template->description = __('Template for displaying single speaker posts', 'event-manager');
-    $new_template->source = 'plugin';
-    $new_template->origin = 'plugin';
-    $new_template->content = $template_content;
-    $new_template->status = 'publish';
-    $new_template->has_theme_file = false;
-    $new_template->is_custom = false;
-    $new_template->post_types = array('speaker');
-
-    // Add to query result if it matches the criteria
-    if (
-        (isset($query['slug__in']) && in_array('single-speaker', $query['slug__in'])) ||
-        (isset($query['post_type']) && $query['post_type'] === 'speaker') ||
-        !isset($query['slug__in'])
-    ) {
-        $query_result[] = $new_template;
+    $theme_override = locate_template('single-speaker.php');
+    if ($theme_override) {
+        return $theme_override;
     }
-
-    return $query_result;
+    return EVENT_MANAGER_PLUGIN_DIR . 'templates/single-speaker.php';
 }
 
 /**

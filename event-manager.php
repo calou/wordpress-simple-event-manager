@@ -74,7 +74,7 @@ add_filter('template_include', function ($template) {
     if ($theme_override) {
         return $theme_override;
     }
-    return EVENT_MANAGER_PLUGIN_DIR . 'templates/event-manager-event.php';
+    return EVENT_MANAGER_PLUGIN_DIR . 'templates/page-event.php';
 });
 
 /**

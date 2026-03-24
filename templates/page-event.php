@@ -3,6 +3,8 @@
  * Template Name: Event
  * Template Post Type: page
  *
+ * Classic-theme equivalent of page-event.html.
+ *
  * @package Event_Manager
  */
 
@@ -20,8 +22,8 @@ get_header();
             <div class="event-page-main">
                 <?php the_content(); ?>
                 <?php echo do_shortcode('[event_speakers]'); ?>
-                <?php echo do_shortcode('[event_organizers]'); ?>
                 <?php echo do_shortcode('[event_programme]'); ?>
+                <?php echo do_shortcode('[event_organizers]'); ?>
             </div>
             <div class="event-page-sidebar">
                 <?php echo do_shortcode('[event_sidebar]'); ?>
