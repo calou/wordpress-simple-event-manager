@@ -8,7 +8,7 @@
 get_header();
 ?>
 
-<div class="venue-page">
+<div class="page-body venue-page">
     <?php while (have_posts()) : the_post(); ?>
         <div class="venue-page-columns">
             <div class="venue-page-main">
