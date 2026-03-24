@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 }
 
 add_shortcode('events_upcoming', 'event_manager_events_upcoming_render');
-add_shortcode('events_past',     'event_manager_events_past_render');
+add_shortcode('events_past', 'event_manager_events_past_render');
 
 /**
  * Shared helper: fetch, filter, sort and paginate events.
@@ -24,7 +24,8 @@ add_shortcode('events_past',     'event_manager_events_past_render');
  * @param array  $atts  Raw shortcode attributes
  * @return string       HTML output
  */
-function event_manager_events_list_render($mode, $atts) {
+function event_manager_events_list_render($mode, $atts)
+{
     $atts = shortcode_atts(array(
         'per_page' => 10,
         'category' => '',
@@ -37,7 +38,6 @@ function event_manager_events_list_render($mode, $atts) {
         'post_type'      => 'page',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
-        'post_parent'    => 0,
         'meta_query'     => event_manager_event_page_meta_query(),
     );
 
@@ -69,9 +69,9 @@ function event_manager_events_list_render($mode, $atts) {
     }
 
     if ($mode === 'upcoming') {
-        usort($filtered, fn($a, $b) => $a['start_ts'] - $b['start_ts']);
+        usort($filtered, fn ($a, $b) => $a['start_ts'] - $b['start_ts']);
     } else {
-        usort($filtered, fn($a, $b) => $b['start_ts'] - $a['start_ts']);
+        usort($filtered, fn ($a, $b) => $b['start_ts'] - $a['start_ts']);
     }
 
     $total        = count($filtered);
@@ -158,7 +158,8 @@ function event_manager_events_list_render($mode, $atts) {
  * [events_upcoming per_page="10" category="slug"]
  * Displays a paginated list of upcoming events, sorted by start date ascending.
  */
-function event_manager_events_upcoming_render($atts) {
+function event_manager_events_upcoming_render($atts)
+{
     return event_manager_events_list_render('upcoming', $atts);
 }
 
@@ -166,6 +167,7 @@ function event_manager_events_upcoming_render($atts) {
  * [events_past per_page="10" category="slug"]
  * Displays a paginated list of past events, sorted by start date descending.
  */
-function event_manager_events_past_render($atts) {
+function event_manager_events_past_render($atts)
+{
     return event_manager_events_list_render('past', $atts);
 }
