@@ -98,6 +98,9 @@ function event_manager_metabox_convert_php_to_flatpickr_format($date_format, $ti
             case 'a':
                 $flatpickr_format .= 'K';
                 break;
+            case 'g':
+                $flatpickr_format .= 'h';
+                break;
 
             default:
                 $flatpickr_format .= $char;
