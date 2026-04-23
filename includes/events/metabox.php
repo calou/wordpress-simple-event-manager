@@ -450,7 +450,7 @@ function event_manager_get_event_data($post_id = null) {
 /**
  * Helper function to format event dates
  */
-function event_manager_format_date($datetime_string, $format = 'F j, Y g:i A') {
+function event_manager_format_date($datetime_string, $format = 'F j, Y H:i') {
     if (empty($datetime_string)) {
         return '';
     }
