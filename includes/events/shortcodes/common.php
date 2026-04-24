@@ -45,24 +45,36 @@ function event_manager_event_format_date_range($start_date, $end_date) {
 
     $date_format = get_option('date_format');
     $time_format = get_option('time_format');
-    $start_ts    = strtotime($start_date);
+    $tz          = wp_timezone();
 
-    if (empty($end_date)) {
-        return date_i18n($date_format . ' ' . $time_format, $start_ts);
+    try {
+        $start = new DateTime($start_date, new DateTimeZone('UTC'));
+        $start->setTimezone($tz);
+    } catch (Exception $e) {
+        return '';
     }
 
-    $end_ts = strtotime($end_date);
+    if (empty($end_date)) {
+        return $start->format($date_format . ' ' . $time_format);
+    }
+
+    try {
+        $end = new DateTime($end_date, new DateTimeZone('UTC'));
+        $end->setTimezone($tz);
+    } catch (Exception $e) {
+        return $start->format($date_format . ' ' . $time_format);
+    }
 
     // Same day: show date once with time range
-    if (date('Y-m-d', $start_ts) === date('Y-m-d', $end_ts)) {
-        return date_i18n($date_format, $start_ts) . ', '
-            . date_i18n($time_format, $start_ts) . ' – '
-            . date_i18n($time_format, $end_ts);
+    if ($start->format('Y-m-d') === $end->format('Y-m-d')) {
+        return $start->format($date_format) . ', '
+            . $start->format($time_format) . ' – '
+            . $end->format($time_format);
     }
 
     // Different days
-    return date_i18n($date_format . ' ' . $time_format, $start_ts) . ' – '
-        . date_i18n($date_format . ' ' . $time_format, $end_ts);
+    return $start->format($date_format . ' ' . $time_format) . ' – '
+        . $end->format($date_format . ' ' . $time_format);
 }
 
 /**
@@ -71,9 +83,9 @@ function event_manager_event_format_date_range($start_date, $end_date) {
  * - "dd/mm/yyyy" otherwise
  */
 function event_manager_events_list_format_date($ts) {
-    $current_year = (int) current_time('Y');
-    $format = (int) date('Y', $ts) === $current_year ? 'd/m' : 'd/m/Y';
-    return date_i18n($format, $ts);
+    $current_year = (int) wp_date('Y');
+    $format = (int) wp_date('Y', $ts) === $current_year ? 'd/m' : 'd/m/Y';
+    return wp_date($format, $ts);
 }
 
 /**
@@ -86,13 +98,19 @@ function event_manager_events_list_format_date_range($start_date, $end_date) {
 
     $start_ts = strtotime($start_date);
 
-    if (empty($end_date) || date('Y-m-d', $start_ts) === date('Y-m-d', strtotime($end_date))) {
+    if (empty($end_date)) {
+        return event_manager_events_list_format_date($start_ts);
+    }
+
+    $end_ts = strtotime($end_date);
+
+    if (wp_date('Y-m-d', $start_ts) === wp_date('Y-m-d', $end_ts)) {
         return event_manager_events_list_format_date($start_ts);
     }
 
     return event_manager_events_list_format_date($start_ts)
         . ' – '
-        . event_manager_events_list_format_date(strtotime($end_date));
+        . event_manager_events_list_format_date($end_ts);
 }
 
 /**
