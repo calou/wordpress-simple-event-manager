@@ -23,7 +23,7 @@ function event_manager_metabox_enqueue_flatpickr($hook) {
     }
 
     global $post;
-    if ($post && $post->post_type === 'page' && event_manager_is_event_page($post->ID)) {
+    if ($post && $post->post_type === 'page') {
         wp_enqueue_style('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', array(), '4.6.13');
         wp_enqueue_script('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', array(), '4.6.13', true);
     }
