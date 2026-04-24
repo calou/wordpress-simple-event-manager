@@ -117,12 +117,13 @@ function event_manager_metabox_format_datetime_for_display($datetime_string, $da
         return '';
     }
 
-    $timestamp = strtotime($datetime_string);
-    if ($timestamp === false) {
+    try {
+        $dt = new DateTime($datetime_string, new DateTimeZone('UTC'));
+        $dt->setTimezone(wp_timezone());
+        return $dt->format($date_format . ' ' . $time_format);
+    } catch (Exception $e) {
         return '';
     }
-
-    return date_i18n($date_format . ' ' . $time_format, $timestamp);
 }
 
 /**
@@ -191,12 +192,10 @@ function event_manager_metabox_render($post) {
                 altInput: false,
                 onChange: function(selectedDates, dateStr, instance) {
                     // Store ISO format in hidden field for server-side processing
-                    if (selectedDates[0]) {
-                        const isoFormat = selectedDates[0].toISOString().slice(0, 19).replace('T', ' ');
+                    if (selectedDates[0] && hiddenInput && hiddenInput.type === 'hidden') {
+                        const isoFormat = selectedDates[0].toISOString();
                         const hiddenInput = instance.element.nextElementSibling;
-                        if (hiddenInput && hiddenInput.type === 'hidden') {
-                            hiddenInput.value = isoFormat;
-                        }
+                        hiddenInput.value = isoFormat;
                     }
                 }
             };
