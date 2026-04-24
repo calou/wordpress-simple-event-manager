@@ -25,15 +25,21 @@ function event_manager_is_event_page($post_id = null) {
     if (!$post_id) {
         $post_id = get_the_ID();
     }
-    return (bool) get_post_meta($post_id, '_event_start_date', true);
+    $event_data = json_decode(get_post_meta($post_id, '_event_data', true), true);
+    return !empty($event_data['start_date']);
 }
 
 function event_manager_event_page_meta_query() {
     return array(
+        'relation' => 'AND',
         array(
-            'key'     => '_event_start_date',
-            'value'   => '',
-            'compare' => '!=',
+            'key'     => '_event_data',
+            'compare' => 'EXISTS',
+        ),
+        array(
+            'key'     => '_event_data',
+            'value'   => '"start_date":""',
+            'compare' => 'NOT LIKE',
         ),
     );
 }

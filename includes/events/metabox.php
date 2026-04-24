@@ -412,14 +412,7 @@ function event_manager_metabox_save($post_id) {
             : array(),
     );
 
-    $json_data = wp_json_encode($event_data);
-    update_post_meta($post_id, '_event_data', $json_data);
-
-    if (!empty($event_data['start_date'])) {
-        update_post_meta($post_id, '_event_start_date', $event_data['start_date']);
-    } else {
-        delete_post_meta($post_id, '_event_start_date');
-    }
+    update_post_meta($post_id, '_event_data', wp_json_encode($event_data));
 }
 
 /**
