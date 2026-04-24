@@ -30,9 +30,7 @@ function event_manager_handle_create_event() {
         'post_status' => 'draft',
         'post_title'  => '',
         'post_parent' => $parent_id,
-        'meta_input'  => array(
-            '_wp_page_template' => EVENT_MANAGER_EVENT_TEMPLATE,
-        ),
+        'meta_input'  => array(),
     ));
 
     if (is_wp_error($page_id)) {

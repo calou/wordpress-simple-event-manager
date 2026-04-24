@@ -20,47 +20,24 @@ if (!defined('ABSPATH')) {
 define('EVENT_MANAGER_VERSION', '1.0.0');
 define('EVENT_MANAGER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EVENT_MANAGER_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('EVENT_MANAGER_EVENT_TEMPLATE', 'event-manager-event');
 
-/**
- * Check if a page uses the Event block template
- */
 function event_manager_is_event_page($post_id = null) {
     if (!$post_id) {
         $post_id = get_the_ID();
     }
-    $template = get_page_template_slug($post_id);
-    // Block themes store template as "theme//slug", classic themes store just the slug
-    return $template === EVENT_MANAGER_EVENT_TEMPLATE
-        || $template === get_stylesheet() . '//' . EVENT_MANAGER_EVENT_TEMPLATE;
+    return (bool) get_post_meta($post_id, '_event_start_date', true);
 }
 
-/**
- * Meta query to find pages using the Event template (handles both block and classic theme formats)
- */
 function event_manager_event_page_meta_query() {
     return array(
-        'relation' => 'OR',
         array(
-            'key' => '_wp_page_template',
-            'value' => EVENT_MANAGER_EVENT_TEMPLATE,
-        ),
-        array(
-            'key' => '_wp_page_template',
-            'value' => get_stylesheet() . '//' . EVENT_MANAGER_EVENT_TEMPLATE,
+            'key'     => '_event_start_date',
+            'value'   => '',
+            'compare' => '!=',
         ),
     );
 }
 
-/**
- * Register the Event template slug with WordPress so:
- * - The "Page Attributes" template dropdown shows "Event" as an option.
- * - The REST API accepts the slug when saving via the block editor.
- */
-add_filter('theme_page_templates', function ($templates) {
-    $templates[EVENT_MANAGER_EVENT_TEMPLATE] = __('Event', 'event-manager');
-    return $templates;
-});
 
 /**
  * Inject event content into the_content so the theme's own template is used.
@@ -75,17 +52,11 @@ add_filter('the_content', function ($content) {
 
     ob_start();
     echo do_shortcode('[event_metadata]');
-    echo '<div class="event-page-columns">';
-    echo '<div class="event-page-main">';
+    echo do_shortcode('[event_sidebar]');
     echo $content;
     echo do_shortcode('[event_speakers]');
     echo do_shortcode('[event_programme]');
     echo do_shortcode('[event_organizers]');
-    echo '</div>';
-    echo '<div class="event-page-sidebar">';
-    echo do_shortcode('[event_sidebar]');
-    echo '</div>';
-    echo '</div>';
     return ob_get_clean();
 });
 
