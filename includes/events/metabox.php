@@ -36,7 +36,7 @@ function event_manager_metabox_enqueue_flatpickr($hook) {
  */
 function event_manager_metabox_add() {
     global $post;
-    if (!$post || !event_manager_is_event_page($post->ID)) {
+    if (!$post) {
         return;
     }
 
