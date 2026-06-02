@@ -192,10 +192,9 @@ function event_manager_metabox_render( $post ) {
 				altInput: false,
 				onChange: function(selectedDates, dateStr, instance) {
 					// Store ISO format in hidden field for server-side processing
+					const hiddenInput = instance.element.nextElementSibling;
 					if (selectedDates[0] && hiddenInput && hiddenInput.type === 'hidden') {
-						const isoFormat = selectedDates[0].toISOString();
-						const hiddenInput = instance.element.nextElementSibling;
-						hiddenInput.value = isoFormat;
+						hiddenInput.value = selectedDates[0].toISOString();
 					}
 				}
 			};
@@ -472,21 +471,5 @@ function event_manager_get_event_data( $post_id = null ) {
 	}
 
 	return $default_data;
-}
-
-/**
- * Helper function to format event dates
- */
-function event_manager_format_date( $datetime_string, $format = 'F j, Y H:i' ) {
-	if ( empty( $datetime_string ) ) {
-		return '';
-	}
-
-	$datetime = DateTime::createFromFormat( 'Y-m-d\TH:i', $datetime_string );
-	if ( $datetime ) {
-		return $datetime->format( $format );
-	}
-
-	return $datetime_string;
 }
 
