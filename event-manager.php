@@ -12,66 +12,72 @@
  */
 
 // Exit if accessed directly
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 // Define plugin constants
-define('EVENT_MANAGER_VERSION', '1.0.0');
-define('EVENT_MANAGER_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('EVENT_MANAGER_PLUGIN_URL', plugin_dir_url(__FILE__));
+define( 'EVENT_MANAGER_VERSION', '1.0.0' );
+define( 'EVENT_MANAGER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'EVENT_MANAGER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-function event_manager_is_event_page($post_id = null) {
-    if (!$post_id) {
-        $post_id = get_the_ID();
-    }
-    $event_data = json_decode(get_post_meta($post_id, '_event_data', true), true);
-    return !empty($event_data['start_date']);
+function event_manager_is_event_page( $post_id = null ) {
+	if ( ! $post_id ) {
+		$post_id = get_the_ID();
+	}
+	$event_data = json_decode( get_post_meta( $post_id, '_event_data', true ), true );
+	return ! empty( $event_data['start_date'] );
 }
 
 function event_manager_event_page_meta_query() {
-    return array(
-        'relation' => 'AND',
-        array(
-            'key'     => '_event_data',
-            'compare' => 'EXISTS',
-        ),
-        array(
-            'key'     => '_event_data',
-            'value'   => '"start_date":""',
-            'compare' => 'NOT LIKE',
-        ),
-    );
+	return array(
+		'relation' => 'AND',
+		array(
+			'key'     => '_event_data',
+			'compare' => 'EXISTS',
+		),
+		array(
+			'key'     => '_event_data',
+			'value'   => '"start_date":""',
+			'compare' => 'NOT LIKE',
+		),
+	);
 }
 
 
 /**
  * Inject event content into the_content so the theme's own template is used.
  */
-add_filter('the_content', function ($content) {
-    if (!is_singular('page') || !in_the_loop() || !is_main_query()) {
-        return $content;
-    }
-    if (!event_manager_is_event_page(get_the_ID())) {
-        return $content;
-    }
+add_filter(
+	'the_content',
+	function ( $content ) {
+		if ( ! is_singular( 'page' ) || ! in_the_loop() || ! is_main_query() ) {
+			return $content;
+		}
+		if ( ! event_manager_is_event_page( get_the_ID() ) ) {
+			return $content;
+		}
 
-    ob_start();
-    echo do_shortcode('[event_metadata]');
-    echo do_shortcode('[event_sidebar]');
-    echo $content;
-    echo do_shortcode('[event_speakers]');
-    echo do_shortcode('[event_programme]');
-    echo do_shortcode('[event_organizers]');
-    return ob_get_clean();
-});
+		ob_start();
+		echo do_shortcode( '[event_metadata]' );
+		echo do_shortcode( '[event_sidebar]' );
+		echo $content;
+		echo do_shortcode( '[event_speakers]' );
+		echo do_shortcode( '[event_programme]' );
+		echo do_shortcode( '[event_organizers]' );
+		return ob_get_clean();
+	}
+);
 
 /**
  * Enable post categories on pages so events can be categorised
  */
-add_action('init', function () {
-    register_taxonomy_for_object_type('category', 'page');
-});
+add_action(
+	'init',
+	function () {
+		register_taxonomy_for_object_type( 'category', 'page' );
+	}
+);
 
 // Include required files
 require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/speakers/post-type.php';
@@ -85,48 +91,48 @@ require_once EVENT_MANAGER_PLUGIN_DIR . 'includes/events/admin-menu.php';
 /**
  * Enqueue admin scripts and styles
  */
-function event_manager_enqueue_admin_scripts($hook) {
-    if ('post.php' !== $hook && 'post-new.php' !== $hook) {
-        return;
-    }
+function event_manager_enqueue_admin_scripts( $hook ) {
+	if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+		return;
+	}
 
-    wp_enqueue_style('event-manager-admin', EVENT_MANAGER_PLUGIN_URL . 'assets/css/admin.css', array(), EVENT_MANAGER_VERSION);
+	wp_enqueue_style( 'event-manager-admin', EVENT_MANAGER_PLUGIN_URL . 'assets/css/admin.css', array(), EVENT_MANAGER_VERSION );
 }
-add_action('admin_enqueue_scripts', 'event_manager_enqueue_admin_scripts');
+add_action( 'admin_enqueue_scripts', 'event_manager_enqueue_admin_scripts' );
 
 /**
  * Theme compatibility wrappers
  * Default wrappers that can be overridden by themes
  */
-if (!function_exists('event_manager_output_content_wrapper')) {
-    function event_manager_output_content_wrapper() {
-        echo '<div class="event-manager-content">';
-    }
+if ( ! function_exists( 'event_manager_output_content_wrapper' ) ) {
+	function event_manager_output_content_wrapper() {
+		echo '<div class="event-manager-content">';
+	}
 }
 
-if (!function_exists('event_manager_output_content_wrapper_end')) {
-    function event_manager_output_content_wrapper_end() {
-        echo '</div>';
-    }
+if ( ! function_exists( 'event_manager_output_content_wrapper_end' ) ) {
+	function event_manager_output_content_wrapper_end() {
+		echo '</div>';
+	}
 }
 
-add_action('event_manager_before_main_content', 'event_manager_output_content_wrapper', 10);
-add_action('event_manager_after_main_content', 'event_manager_output_content_wrapper_end', 10);
+add_action( 'event_manager_before_main_content', 'event_manager_output_content_wrapper', 10 );
+add_action( 'event_manager_after_main_content', 'event_manager_output_content_wrapper_end', 10 );
 
 /**
  * Activation hook
  */
 function event_manager_activate() {
-    // Flush rewrite rules
-    flush_rewrite_rules();
+	// Flush rewrite rules
+	flush_rewrite_rules();
 }
-register_activation_hook(__FILE__, 'event_manager_activate');
+register_activation_hook( __FILE__, 'event_manager_activate' );
 
 /**
  * Deactivation hook
  */
 function event_manager_deactivate() {
-    // Flush rewrite rules
-    flush_rewrite_rules();
+	// Flush rewrite rules
+	flush_rewrite_rules();
 }
-register_deactivation_hook(__FILE__, 'event_manager_deactivate');
+register_deactivation_hook( __FILE__, 'event_manager_deactivate' );

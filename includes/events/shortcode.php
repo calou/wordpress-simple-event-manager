@@ -5,8 +5,8 @@
  * @package Event_Manager
  */
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 $shortcodes_dir = __DIR__ . '/shortcodes/';
