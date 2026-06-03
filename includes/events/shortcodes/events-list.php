@@ -53,14 +53,19 @@ function event_manager_events_list_render( $mode, $atts ) {
 		}
 	}
 
-	$all_posts = get_posts( $query_args );
+	$all_events = get_posts( $query_args );
+	$event_ids  = array();
+	foreach ( $all_events as $post ) {
+		$event_ids[] = $post->ID;
+	}
 
 	$filtered = array();
-	foreach ( $all_posts as $post ) {
-		$data = event_manager_get_event_data( $post->ID );
-		if ( empty( $data['start_date'] ) ) {
+	foreach ( $all_events as $post ) {
+		// Keep only the events without any parent event.
+		if ( ! empty( array_intersect( $event_ids, $post->ancestors ) ) ) {
 			continue;
 		}
+		$data     = event_manager_get_event_data( $post->ID );
 		$start_ts = strtotime( $data['start_date'] );
 		$end_ts   = ! empty( $data['end_date'] ) ? strtotime( $data['end_date'] ) : $start_ts;
 

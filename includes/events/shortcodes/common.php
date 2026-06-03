@@ -117,21 +117,43 @@ function event_manager_events_list_format_date_range( $start_date, $end_date ) {
  * Get child events for a given event using page hierarchy
  */
 function event_manager_event_get_children( $post_id ) {
-	$child_pages = get_posts(
+	$child_pages = get_pages(
 		array(
 			'post_type'      => 'page',
-			'post_parent'    => $post_id,
+			'child_of'       => $post_id,
+			'posts_per_page' => -1,
+			'hierarchical'   => true,
+		)
+	);
+
+	$all_events = get_posts(
+		array(
+			'post_type'      => 'page',
 			'posts_per_page' => -1,
 			'meta_query'     => event_manager_event_page_meta_query(),
 		)
 	);
 
+	$all_event_ids = array();
+	foreach ( $all_events as $page ) {
+		$all_event_ids[] = $page->ID;
+	}
+
+	$child_ids = array();
+	foreach ( $child_pages as $page ) {
+		if ( in_array( $page->ID, $all_event_ids ) ) {
+			$child_ids[] = $page->ID;
+		}
+	}
+
 	$child_events = array();
 	foreach ( $child_pages as $page ) {
-		$child_events[] = array(
-			'post' => $page,
-			'data' => event_manager_get_event_data( $page->ID ),
-		);
+		if ( in_array( $page->ID, $all_event_ids ) && empty( array_intersect( $page->ancestors, $child_ids ) ) ) {
+			$child_events[] = array(
+				'post' => $page,
+				'data' => event_manager_get_event_data( $page->ID ),
+			);
+		}
 	}
 
 	return $child_events;
