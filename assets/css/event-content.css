@@ -42,6 +42,7 @@
     border-radius: 12px;
     border: 1px solid #e8eaed;
     overflow: hidden;
+    margin: 24px 0 12px 12px !important;
 }
 
 .event-sidebar-section {
