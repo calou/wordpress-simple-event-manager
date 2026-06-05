@@ -127,18 +127,19 @@ function event_manager_event_get_children( int $post_id ) {
 		)
 	);
 
-	$all_events = get_posts(
+	$all_event_ids = get_posts(
 		array(
 			'post_type'      => 'page',
 			'posts_per_page' => -1,
 			'meta_query'     => event_manager_event_page_meta_query(),
+			'fields'         => 'ids',
+			'post_status'    => 'publish',
 		)
 	);
 
-	$all_event_ids = array_column( $all_events, 'ID' );
-
 	$child_ids = array();
 	foreach ( $child_pages as $page ) {
+		// The page needs to be an event
 		if ( in_array( $page->ID, $all_event_ids ) ) {
 			$child_ids[] = $page->ID;
 		}
@@ -146,8 +147,8 @@ function event_manager_event_get_children( int $post_id ) {
 
 	$child_events = array();
 	foreach ( $child_pages as $page ) {
-		// The page needs to be an event and must not have a parent event.
-		if ( in_array( $page->ID, $all_event_ids ) && empty( array_intersect( $page->ancestors, $child_ids ) ) ) {
+		// The page must not have a parent event.
+		if ( empty( array_intersect( $page->ancestors, $child_ids ) ) ) {
 			$child_events[] = array(
 				'post' => $page,
 				'data' => event_manager_get_event_data( $page->ID ),
