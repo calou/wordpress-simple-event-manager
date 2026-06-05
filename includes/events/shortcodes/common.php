@@ -116,13 +116,14 @@ function event_manager_events_list_format_date_range( $start_date, $end_date ) {
 /**
  * Get child events for a given event using page hierarchy
  */
-function event_manager_event_get_children( $post_id ) {
+function event_manager_event_get_children( int $post_id ) {
 	$child_pages = get_pages(
 		array(
 			'post_type'      => 'page',
 			'child_of'       => $post_id,
 			'posts_per_page' => -1,
 			'hierarchical'   => true,
+			'post_status'    => 'publish',
 		)
 	);
 
@@ -134,10 +135,7 @@ function event_manager_event_get_children( $post_id ) {
 		)
 	);
 
-	$all_event_ids = array();
-	foreach ( $all_events as $page ) {
-		$all_event_ids[] = $page->ID;
-	}
+	$all_event_ids = array_column( $all_events, 'ID' );
 
 	$child_ids = array();
 	foreach ( $child_pages as $page ) {
@@ -148,6 +146,7 @@ function event_manager_event_get_children( $post_id ) {
 
 	$child_events = array();
 	foreach ( $child_pages as $page ) {
+		// The page needs to be an event and must not have a parent event.
 		if ( in_array( $page->ID, $all_event_ids ) && empty( array_intersect( $page->ancestors, $child_ids ) ) ) {
 			$child_events[] = array(
 				'post' => $page,
