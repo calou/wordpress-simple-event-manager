@@ -71,16 +71,7 @@ function event_manager_admin_menu() {
  * Render the "Events" admin page
  */
 function event_manager_events_list_page() {
-	$events = get_posts(
-		array(
-			'post_type'      => 'page',
-			'posts_per_page' => -1,
-			'post_status'    => array( 'publish', 'draft', 'pending' ),
-			'meta_query'     => event_manager_event_page_meta_query(),
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-		)
-	);
+	$events = event_manager_event_get_children( 0 );
 
 	?>
 	<div class="wrap">
