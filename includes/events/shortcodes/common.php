@@ -148,7 +148,7 @@ function event_manager_event_get_children( int $post_id ) {
 	$child_events = array();
 	foreach ( $child_pages as $page ) {
 		// The page must not have a parent event.
-		if ( empty( array_intersect( $page->ancestors, $child_ids ) ) ) {
+		if ( in_array( $page->ID, $child_ids ) && empty( array_intersect( $page->ancestors, $child_ids ) ) ) {
 			$child_events[] = array(
 				'post' => $page,
 				'data' => event_manager_get_event_data( $page->ID ),
