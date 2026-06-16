@@ -24,16 +24,6 @@ function event_manager_event_metadata_render( $atts ) {
 
 	$event_data = event_manager_get_event_data( $post_id );
 
-	// Get parent event from page hierarchy
-	$parent_event = null;
-	$post         = get_post( $post_id );
-	if ( $post && $post->post_parent ) {
-		$parent = get_post( $post->post_parent );
-		if ( $parent && $parent->post_status === 'publish' ) {
-			$parent_event = $parent;
-		}
-	}
-
 	// Date-only range (no time)
 	$date_only = '';
 	if ( ! empty( $event_data['start_date'] ) ) {
@@ -46,21 +36,13 @@ function event_manager_event_metadata_render( $atts ) {
 		}
 	}
 
-	if ( ! $parent_event && empty( $date_only ) ) {
+	if ( empty( $date_only ) ) {
 		return '';
 	}
 
 	ob_start();
 	?>
 	<div class="event-meta">
-		<?php if ( $parent_event ) : ?>
-			<div class="event-breadcrumb">
-				<a href="<?php echo get_permalink( $parent_event->ID ); ?>">
-					<i class="fas fa-arrow-left"></i> <?php echo esc_html( $parent_event->post_title ); ?>
-				</a>
-			</div>
-		<?php endif; ?>
-
 		<?php if ( ! empty( $date_only ) ) : ?>
 			<div class="event-date"><?php echo esc_html( $date_only ); ?></div>
 		<?php endif; ?>
