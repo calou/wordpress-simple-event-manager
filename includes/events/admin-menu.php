@@ -96,8 +96,9 @@ function event_manager_events_list_page() {
 				</thead>
 				<tbody>
 					<?php
-					foreach ( $events as $event ) :
-						$event_data = event_manager_get_event_data( $event->ID );
+					foreach ( $events as $ev ) :
+						$event      = $ev['post'];
+						$event_data = $ev['data'];
 						$venue_name = '';
 						if ( ! empty( $event_data['venue_id'] ) ) {
 							$venue_post = get_post( $event_data['venue_id'] );
